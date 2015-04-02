@@ -39,6 +39,8 @@ namespace TinyGarrison
 				{
 					case "MoveToJob":
 						return await Helpers.MoveToJob(Jobs.CurrentJob().Location);
+					case "LootGarrisonCache":
+						return await SubTasks.LootGarrisonCache();
 					case "LootShipments":
 						return await SubTasks.LootShipments();
 					case "Harvest":
@@ -65,10 +67,12 @@ namespace TinyGarrison
 						await Coroutine.Sleep(10000);
 						Jobs.NextSubTask();
 						return true;
+					case "Done":
+						Jobs.NextJob();
+						return true;
 				}
 			}
 
-			Jobs.NextJob();
 			return true;
 	    }
 

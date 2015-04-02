@@ -27,6 +27,7 @@ namespace TinyGarrison
 
 			if (r == MoveResult.ReachedDestination)
 			{
+				Log("Made it");
 				Jobs.NextSubTask();
 				return true;
 			}

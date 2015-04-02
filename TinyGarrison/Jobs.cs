@@ -8,6 +8,8 @@ using Styx.WoWInternals;
 
 namespace TinyGarrison
 {
+	public enum SubTask { MoveToJob = -1, LootShipment = 0, LootGarrisonCache = 1, StartWorkOrders = 2 };
+
 	class Job
 	{
 		public Job(string name, GarrisonBuildingType type, WoWPoint location, int shipmentCrateEntry, int workOrderNpcEntry, int professionNpcEntry)
@@ -31,7 +33,7 @@ namespace TinyGarrison
 	class Jobs
 	{
 		private static List<Job> MyJobs = new List<Job>();
-		private static List<string> MySubTasks = new List<string>();
+		private static List<SubTask> MySubTasks = new List<SubTask>();
 
 		private static Dictionary<int, WoWPoint> PlotIdLocations = new Dictionary<int, WoWPoint>();
 		private static int _currentJobIndex;
@@ -77,9 +79,11 @@ namespace TinyGarrison
 			
 			_currentJobIndex = 0;
 			_currentSubTaskIndex = 0;
+
 			MySubTasks.Clear();
-			MySubTasks.Add("MoveToJob");
-			MySubTasks.Add("LootShiupments");
+			MySubTasks.Add(SubTask.MoveToJob);
+			MySubTasks.Add(SubTask.LootGarrisonCache);
+			
 			Helpers.Log("Job List Created");
 		}
 
@@ -90,16 +94,16 @@ namespace TinyGarrison
 			Lua.DoString("C_Garrison.RequestLandingPageShipmentInfo()");
 
 			_currentSubTaskIndex = 0;
+
 			MySubTasks.Clear();
-			// Move (All SubTasks)
-			MySubTasks.Add("MoveToJob");
-			// LootShipments
-			if (CurrentJob().ShipmentCrateEntry != 0 && GarrisonInfo.GetShipmentInfoByType(CurrentJob().Type).LandingPageInfo.ShipmentsReady > 0) MySubTasks.Add("LootShipments");
+			MySubTasks.Add(SubTask.MoveToJob);
+			if (CurrentJob().ShipmentCrateEntry != 0 && GarrisonInfo.GetShipmentInfoByType(CurrentJob().Type).LandingPageInfo.ShipmentsReady > 0) MySubTasks.Add(SubTask.LootShipment);
 		}
 
 		public static void NextSubTask()
 		{
 			_currentSubTaskIndex++;
+			Helpers.Log("Current SubTask: " + CurrentSubTask());
 		}
 
 		public static Job CurrentJob()
@@ -107,7 +111,7 @@ namespace TinyGarrison
 			return MyJobs[_currentJobIndex];
 		}
 
-		public static string CurrentSubTask()
+		public static SubTask CurrentSubTask()
 		{
 			return MySubTasks[_currentSubTaskIndex];
 		}
