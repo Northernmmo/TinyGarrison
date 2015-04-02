@@ -37,42 +37,18 @@ namespace TinyGarrison
 			{
 				switch (Jobs.CurrentSubTask())
 				{
-					case "MoveToJob":
+					case SubTask.MoveToJob:
 						return await Helpers.MoveToJob(Jobs.CurrentJob().Location);
-					case "LootGarrisonCache":
+					case SubTask.LootGarrisonCache:
 						return await SubTasks.LootGarrisonCache();
-					case "LootShipments":
+					case SubTask.LootShipment:
 						return await SubTasks.LootShipments();
-					case "Harvest":
-						await Coroutine.Sleep(10000);
-						Jobs.NextSubTask();
-						return true;
-					case "StartWorkOrders":
-						await Coroutine.Sleep(10000);
-						Jobs.NextSubTask();
-						return true;
-					case "DoProfession":
-						await Coroutine.Sleep(10000);
-						Jobs.NextSubTask();
-						return true;
-					case "BuySavageBlood":
-						await Coroutine.Sleep(10000);
-						Jobs.NextSubTask();
-						return true;
-					case "Salvage":
-						await Coroutine.Sleep(10000);
-						Jobs.NextSubTask();
-						return true;
-					case "Vendor":
-						await Coroutine.Sleep(10000);
-						Jobs.NextSubTask();
-						return true;
-					case "Done":
-						Jobs.NextJob();
-						return true;
+					case SubTask.GatherHerbs:
+						return await SubTasks.GatherHerbs();
 				}
 			}
 
+			Helpers.Log("Done");
 			return true;
 	    }
 

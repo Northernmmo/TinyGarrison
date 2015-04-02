@@ -2,7 +2,9 @@
 using System.Windows.Media;
 using Styx;
 using Styx.Common;
+using Styx.CommonBot;
 using Styx.CommonBot.Coroutines;
+using Styx.Helpers;
 using Styx.Pathing;
 using Styx.WoWInternals.WoWObjects;
 
@@ -22,12 +24,12 @@ namespace TinyGarrison
 
 		public static async Task<bool> MoveToJob(WoWPoint destination)
 		{
+			TreeRoot.StatusText = "Current Job - " + Jobs.CurrentJob().Name;
 			Log("Moving to Job: " + Jobs.CurrentJob().Name);
 			MoveResult r = await CommonCoroutines.MoveTo(destination);
 
 			if (r == MoveResult.ReachedDestination)
 			{
-				Log("Made it");
 				Jobs.NextSubTask();
 				return true;
 			}
@@ -42,7 +44,14 @@ namespace TinyGarrison
 			{
 				return true;
 			}
-			return false;
+			return true;
+		}
+
+		public static async Task<bool> MoveTo(WoWGameObject destinationObject)
+		{
+			WoWPoint pointFromTarget = WoWMathHelper.CalculatePointFrom(Me.Location, destinationObject.Location, destinationObject.InteractRange - 2);
+
+			return await MoveTo(pointFromTarget);
 		}
 	}
 }

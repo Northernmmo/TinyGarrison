@@ -8,7 +8,7 @@ using Styx.WoWInternals;
 
 namespace TinyGarrison
 {
-	public enum SubTask { MoveToJob = -1, LootShipment = 0, LootGarrisonCache = 1, StartWorkOrders = 2 };
+	public enum SubTask { MoveToJob = -1, LootShipment = 0, LootGarrisonCache = 1, StartWorkOrders = 2, GatherHerbs = 3 };
 
 	class Job
 	{
@@ -90,7 +90,6 @@ namespace TinyGarrison
 		public static void NextJob()
 		{
 			_currentJobIndex++;
-			TreeRoot.StatusText = "Current Job - " + CurrentJob().Name;
 			Lua.DoString("C_Garrison.RequestLandingPageShipmentInfo()");
 
 			_currentSubTaskIndex = 0;
@@ -98,12 +97,13 @@ namespace TinyGarrison
 			MySubTasks.Clear();
 			MySubTasks.Add(SubTask.MoveToJob);
 			if (CurrentJob().ShipmentCrateEntry != 0 && GarrisonInfo.GetShipmentInfoByType(CurrentJob().Type).LandingPageInfo.ShipmentsReady > 0) MySubTasks.Add(SubTask.LootShipment);
+			if (CurrentJob().ShipmentCrateEntry != 0 && CurrentJob().ProfessionNpcEntry == 0) MySubTasks.Add(SubTask.GatherHerbs);
 		}
 
 		public static void NextSubTask()
 		{
-			_currentSubTaskIndex++;
-			Helpers.Log("Current SubTask: " + CurrentSubTask());
+			if (++_currentSubTaskIndex == MySubTasks.Count)
+				NextJob();
 		}
 
 		public static Job CurrentJob()
