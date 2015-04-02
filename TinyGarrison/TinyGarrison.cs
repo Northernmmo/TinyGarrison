@@ -9,6 +9,7 @@ using Styx.CommonBot.Coroutines;
 using Styx.TreeSharp;
 using Styx.WoWInternals;
 using Styx.WoWInternals.WoWObjects;
+using Buddy.Coroutines;
 
 namespace TinyGarrison
 {
@@ -32,10 +33,45 @@ namespace TinyGarrison
 		    if (await Loot()) return true;
 		    #endregion
 
-		    if (!Jobs.CurrentJob().AlreadyMoved) await Helpers.MoveTo(Jobs.CurrentJob().Location);
+			if (Jobs.CurrentJob() != null)
+			{
+				switch (Jobs.CurrentSubTask())
+				{
+					case "MoveToJob":
+						return await Helpers.MoveToJob(Jobs.CurrentJob().Location);
+					case "LootShipments":
+						await Coroutine.Sleep(10000);
+						Jobs.NextSubTask();
+						return true;
+					case "Harvest":
+						await Coroutine.Sleep(10000);
+						Jobs.NextSubTask();
+						return true;
+					case "StartWorkOrders":
+						await Coroutine.Sleep(10000);
+						Jobs.NextSubTask();
+						return true;
+					case "DoProfession":
+						await Coroutine.Sleep(10000);
+						Jobs.NextSubTask();
+						return true;
+					case "BuySavageBlood":
+						await Coroutine.Sleep(10000);
+						Jobs.NextSubTask();
+						return true;
+					case "Salvage":
+						await Coroutine.Sleep(10000);
+						Jobs.NextSubTask();
+						return true;
+					case "Vendor":
+						await Coroutine.Sleep(10000);
+						Jobs.NextSubTask();
+						return true;
+				}
+			}
 
 			Jobs.NextJob();
-		    return true;
+			return true;
 	    }
 
 	    #region DefaultBehaviorDeclerations

@@ -20,13 +20,25 @@ namespace TinyGarrison
 			_lastMsg = msg;
 		}
 
+		public static async Task<bool> MoveToJob(WoWPoint destination)
+		{
+			Log("Moving to Job: " + Jobs.CurrentJob().Name);
+			MoveResult r = await CommonCoroutines.MoveTo(destination);
+
+			if (r == MoveResult.ReachedDestination)
+			{
+				Jobs.NextSubTask();
+				return true;
+			}
+			return false;
+		}
+
 		public static async Task<bool> MoveTo(WoWPoint destination)
 		{
 			MoveResult r = await CommonCoroutines.MoveTo(destination);
 
 			if (r == MoveResult.ReachedDestination)
 			{
-				Jobs.CurrentJob().AlreadyMoved = true;
 				return true;
 			}
 			return false;
