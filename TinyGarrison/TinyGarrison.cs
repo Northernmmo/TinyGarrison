@@ -40,9 +40,7 @@ namespace TinyGarrison
 					case "MoveToJob":
 						return await Helpers.MoveToJob(Jobs.CurrentJob().Location);
 					case "LootShipments":
-						await Coroutine.Sleep(10000);
-						Jobs.NextSubTask();
-						return true;
+						return await SubTasks.LootShipments();
 					case "Harvest":
 						await Coroutine.Sleep(10000);
 						Jobs.NextSubTask();

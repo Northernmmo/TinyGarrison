@@ -69,6 +69,7 @@
   <ItemGroup>
     <Compile Include="Helpers.cs" />
     <Compile Include="Jobs.cs" />
+    <Compile Include="SubTasks.cs" />
     <Compile Include="TinyGarrison.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
