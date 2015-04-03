@@ -41,6 +41,8 @@ namespace TinyGarrison
 					{
 						case "GarrisonCache":
 							return await Tasks.GarrisonCache.Handler();
+						case "PrimalTrader":
+							return await Tasks.PrimalTrader.Handler();
 						case "CommandTable":
 							return await Tasks.CommandTable.Handler();
 						case "Done":

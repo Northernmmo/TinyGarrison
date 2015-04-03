@@ -84,7 +84,7 @@ namespace TinyGarrison
 
 			if (ShipmentCrate != null && ShipmentCrate.IsValid && ShipmentCrate.IsValid && GarrisonInfo.GetShipmentInfoByType(Jobs.CurrentJob().Type).LandingPageInfo.ShipmentsReady > 0)
 			{
-				Helpers.Log("Looting " + ShipmentCrate.Name);
+				Log("Looting " + ShipmentCrate.Name);
 				ShipmentCrate.Interact();
 				await CommonCoroutines.WaitForLuaEvent("LOOT_OPENED", 3000);
 				await CommonCoroutines.WaitForLuaEvent("LOOT_CLOSED", 3000);
@@ -120,12 +120,8 @@ namespace TinyGarrison
 			return true;
 		}
 
-		public static bool CanStartWorkOrder()
+		public static bool HasWorkOrderMaterial()
 		{
-			Log("checking if we can start work orders");
-			if (GarrisonInfo.GetShipmentInfoByType(Jobs.CurrentJob().Type).LandingPageInfo.ShipmentsCreated == GarrisonInfo.GetShipmentInfoByType(Jobs.CurrentJob().Type).ShipmentCapacity)
-				return false;
-
 			switch (Jobs.CurrentJob().Type)
 			{
 				case GarrisonBuildingType.HerbGarden:
