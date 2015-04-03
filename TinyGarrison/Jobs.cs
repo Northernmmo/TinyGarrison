@@ -5,10 +5,11 @@ using Styx.CommonBot;
 using Styx.WoWInternals.Garrison;
 using Styx.WoWInternals.DB;
 using Styx.WoWInternals;
+using Styx.WoWInternals.WoWObjects;
 
 namespace TinyGarrison
 {
-	public enum SubTask { MoveToJob = -1, LootShipment = 0, LootGarrisonCache = 1, StartWorkOrders = 2, GatherHerbs = 3 };
+	public enum SubTask { MoveToJob = -1, LootShipment = 0, LootGarrisonCache = 1, StartWorkOrders = 2, GatherHerbs = 3 , GatherOre = 4, Profession = 5 };
 
 	class Job
 	{
@@ -36,6 +37,7 @@ namespace TinyGarrison
 		private static List<SubTask> MySubTasks = new List<SubTask>();
 
 		private static Dictionary<int, WoWPoint> PlotIdLocations = new Dictionary<int, WoWPoint>();
+		public static readonly LocalPlayer Me = StyxWoW.Me;
 		private static int _currentJobIndex;
 		private static int _currentSubTaskIndex;
 
@@ -97,11 +99,15 @@ namespace TinyGarrison
 			MySubTasks.Clear();
 			MySubTasks.Add(SubTask.MoveToJob);
 			if (CurrentJob().ShipmentCrateEntry != 0 && GarrisonInfo.GetShipmentInfoByType(CurrentJob().Type).LandingPageInfo.ShipmentsReady > 0) MySubTasks.Add(SubTask.LootShipment);
-			if (CurrentJob().ShipmentCrateEntry != 0 && CurrentJob().ProfessionNpcEntry == 0) MySubTasks.Add(SubTask.GatherHerbs);
+			if (CurrentJob().Type == GarrisonBuildingType.HerbGarden) MySubTasks.Add(SubTask.GatherHerbs);
+			if (CurrentJob().Type == GarrisonBuildingType.Mines) MySubTasks.Add(SubTask.GatherOre);
+			if (CurrentJob().ProfessionNpcEntry != 0) MySubTasks.Add(SubTask.Profession);
+			if (CurrentJob().WorkOrderNpcEntry != 0 && CurrentJob().ShipmentCrateEntry != 0) MySubTasks.Add(SubTask.StartWorkOrders);
 		}
 
 		public static void NextSubTask()
 		{
+			Lua.DoString("C_Garrison.RequestLandingPageShipmentInfo()");
 			if (++_currentSubTaskIndex == MySubTasks.Count)
 				NextJob();
 		}

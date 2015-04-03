@@ -7,6 +7,8 @@ using Styx.CommonBot.Coroutines;
 using Styx.Helpers;
 using Styx.Pathing;
 using Styx.WoWInternals.WoWObjects;
+using Styx.WoWInternals.DB;
+using Styx.WoWInternals;
 
 namespace TinyGarrison
 {
@@ -52,6 +54,43 @@ namespace TinyGarrison
 			WoWPoint pointFromTarget = WoWMathHelper.CalculatePointFrom(Me.Location, destinationObject.Location, destinationObject.InteractRange - 2);
 
 			return await MoveTo(pointFromTarget);
+		}
+
+		public static async Task<bool> MoveTo(WoWUnit destinationUnit)
+		{
+			WoWPoint pointFromTarget = WoWMathHelper.CalculatePointFrom(Me.Location, destinationUnit.Location, destinationUnit.InteractRange - 2);
+
+			return await MoveTo(pointFromTarget);
+		}
+
+		public static bool HasWorkOrderMaterial()
+		{
+			switch (Jobs.CurrentJob().Type)
+			{
+				case GarrisonBuildingType.HerbGarden:
+					return Lua.GetReturnVal<int>("return GetItemCount('Draenic Seeds')", 0) >= 5;
+				case GarrisonBuildingType.Mines:
+					return Lua.GetReturnVal<int>("return GetItemCount('Draenic Stone')", 0) >= 5;
+				case GarrisonBuildingType.Enchanting:
+					return Lua.GetReturnVal<int>("return GetItemCount('Draenic Dust')", 0) >= 5;
+				case GarrisonBuildingType.Alchemy:
+					return Lua.GetReturnVal<int>("return GetItemCount('Frostweed')", 0) >= 5;
+				case GarrisonBuildingType.Leatherworking:
+					return Lua.GetReturnVal<int>("return GetItemCount('Raw Beast Hide')", 0) >= 5;
+				case GarrisonBuildingType.Jewelcrafting:
+					return Lua.GetReturnVal<int>("return GetItemCount('Blackrock Ore')", 0) >= 5;
+				case GarrisonBuildingType.Blacksmithing:
+					return Lua.GetReturnVal<int>("return GetItemCount('True Iron Ore')", 0) >= 5;
+				case GarrisonBuildingType.Tailoring:
+					return Lua.GetReturnVal<int>("return GetItemCount('Sumptuous Fur')", 0) >= 5;
+				case GarrisonBuildingType.Engineering:
+					return Lua.GetReturnVal<int>("return GetItemCount('Blackrock Ore')", 0) >= 2 &&
+						Lua.GetReturnVal<int>("return GetItemCount('True Iron Ore')", 0) >= 2;
+				case GarrisonBuildingType.Inscription:
+					return Lua.GetReturnVal<int>("return GetItemCount('Cerulean Pigment')", 0) >= 2;
+			}
+
+			return false;
 		}
 	}
 }

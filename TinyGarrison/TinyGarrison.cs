@@ -45,6 +45,12 @@ namespace TinyGarrison
 						return await SubTasks.LootShipments();
 					case SubTask.GatherHerbs:
 						return await SubTasks.GatherHerbs();
+					case SubTask.GatherOre:
+						return await SubTasks.GatherOre();
+					case SubTask.StartWorkOrders:
+						return await SubTasks.StartWorkOrders();
+					case SubTask.Profession:
+						return await SubTasks.Profession();
 				}
 			}
 
