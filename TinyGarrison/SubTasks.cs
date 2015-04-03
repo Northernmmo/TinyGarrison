@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Styx;
+using Styx.Common;
 using Styx.CommonBot;
 using Styx.WoWInternals.Garrison;
 using Styx.WoWInternals.DB;
@@ -17,14 +18,17 @@ namespace TinyGarrison
 	{
 		public static async Task<bool> LootShipments()
 		{
+			Lua.DoString("C_Garrison.RequestLandingPageShipmentInfo()");
+			await CommonCoroutines.WaitForLuaEvent("GARRISON_LANDINGPAGE_SHIPMENTS", 3000);
+
 			WoWGameObject ShipmentCrate =
 				ObjectManager.GetObjectsOfType<WoWGameObject>()
 					.Where(o => o.Entry == Jobs.CurrentJob().ShipmentCrateEntry)
 					.OrderBy(o => o.Distance).FirstOrDefault();
-
-			if (ShipmentCrate != null && ShipmentCrate.IsValid)
+			Helpers.Log(Jobs.CurrentJob().Type+" "+GarrisonInfo.GetShipmentInfoByType(Jobs.CurrentJob().Type).LandingPageInfo.ShipmentsReady);
+			if (ShipmentCrate != null && ShipmentCrate.IsValid && GarrisonInfo.GetShipmentInfoByType(Jobs.CurrentJob().Type).LandingPageInfo.ShipmentsReady > 0)
 			{
-				Helpers.Log("Looting " + ShipmentCrate.Name);
+				Helpers.Log("Loolkjting " + ShipmentCrate.Name);
 				ShipmentCrate.Interact();
 				await CommonCoroutines.WaitForLuaEvent("LOOT_OPENED", 6000);
 				await CommonCoroutines.WaitForLuaEvent("LOOT_CLOSED", 6000);
@@ -43,7 +47,7 @@ namespace TinyGarrison
 
 			if (GarrisonCache != null && GarrisonCache.IsValid)
 			{
-				Helpers.Log("Looting " + GarrisonCache.Name);
+				Helpers.Log("Looti0ng " + GarrisonCache.Name);
 				GarrisonCache.Interact();
 				await CommonCoroutines.WaitForLuaEvent("CHAT_MESSAGE_CURRENCY", 6000);
 				return true;
@@ -125,7 +129,7 @@ namespace TinyGarrison
 					.OrderBy(o => o.Distance).FirstOrDefault();
 
 			Lua.DoString("C_Garrison.RequestLandingPageShipmentInfo()");
-			await CommonCoroutines.SleepForLagDuration();
+			await CommonCoroutines.WaitForLuaEvent("GARRISON_LANDINGPAGE_SHIPMENTS", 3000);
 
 			if (WorkOrderNpc != null && WorkOrderNpc.IsValid &&
 				GarrisonInfo.GetShipmentInfoByType(Jobs.CurrentJob().Type).ShipmentCapacity -
@@ -144,6 +148,9 @@ namespace TinyGarrison
 				await CommonCoroutines.WaitForLuaEvent("SHIPMENT_CRAFTER_CLOSED", 3000);
 				return true;
 			}
+
+			if (await Helpers.UseRushOrder())
+				return true;
 
 			Jobs.NextSubTask();
 			return true;
@@ -221,6 +228,11 @@ namespace TinyGarrison
 
 			Jobs.NextSubTask();
 			return true;
+		}
+
+		private void MissionStuff()
+		{
+			Styx.WoWInternals.Garrison.GarrisonInfo.Missions.ForEach(o => Logging.Write(o.Name + o.RewardRecords.FirstOrDefault().GetType()));
 		}
 	}
 }

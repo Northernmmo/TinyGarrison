@@ -9,6 +9,7 @@ using Styx.Pathing;
 using Styx.WoWInternals.WoWObjects;
 using Styx.WoWInternals.DB;
 using Styx.WoWInternals;
+using Styx.WoWInternals.Garrison;
 
 namespace TinyGarrison
 {
@@ -90,6 +91,98 @@ namespace TinyGarrison
 					return Lua.GetReturnVal<int>("return GetItemCount('Cerulean Pigment')", 0) >= 2;
 			}
 
+			return false;
+		}
+
+		public static async Task<bool> UseRushOrder()
+		{
+			Lua.DoString("C_Garrison.RequestLandingPageShipmentInfo()");
+			await CommonCoroutines.WaitForLuaEvent("GARRISON_LANDINGPAGE_SHIPMENTS", 3000);
+			Log("checking rush orders");
+			Log("Created: " + GarrisonInfo.GetShipmentInfoByType(Jobs.CurrentJob().Type).LandingPageInfo.ShipmentsCreated + " capacity: " + GarrisonInfo.GetShipmentInfoByType(Jobs.CurrentJob().Type).ShipmentCapacity);
+			switch (Jobs.CurrentJob().Type)
+			{
+				case GarrisonBuildingType.Enchanting:
+					if (Lua.GetReturnVal<int>("return GetItemCount('Rush Order: The Tannery')", 0) > 0 &&
+					    GarrisonInfo.GetShipmentInfoByType(Jobs.CurrentJob().Type).LandingPageInfo.ShipmentsCreated ==
+					    GarrisonInfo.GetShipmentInfoByType(Jobs.CurrentJob().Type).ShipmentCapacity)
+					{
+						Lua.DoString("RunMacroText(\"/use Rush Order: The Tannery\")");
+						Jobs.ResetSubTasks();
+						return true;
+					}
+					return false;
+				case GarrisonBuildingType.Alchemy:
+					if (Lua.GetReturnVal<int>("return GetItemCount('Rush Order: The Tannery')", 0) > 0 &&
+					    GarrisonInfo.GetShipmentInfoByType(Jobs.CurrentJob().Type).LandingPageInfo.ShipmentsCreated ==
+					    GarrisonInfo.GetShipmentInfoByType(Jobs.CurrentJob().Type).ShipmentCapacity)
+					{
+						Lua.DoString("RunMacroText(\"/use Rush Order: The Tannery\")");
+						Jobs.ResetSubTasks();
+						return true;
+					}
+					return false;
+				case GarrisonBuildingType.Leatherworking:
+					if (Lua.GetReturnVal<int>("return GetItemCount('Rush Order: The Tannery')", 0) > 0 &&
+					    GarrisonInfo.GetShipmentInfoByType(Jobs.CurrentJob().Type).LandingPageInfo.ShipmentsCreated ==
+					    GarrisonInfo.GetShipmentInfoByType(Jobs.CurrentJob().Type).ShipmentCapacity)
+					{
+						Lua.DoString("RunMacroText(\"/use Rush Order: The Tannery\")");
+						Jobs.ResetSubTasks();
+						return true;
+					}
+					return false;
+				case GarrisonBuildingType.Jewelcrafting:
+					if (Lua.GetReturnVal<int>("return GetItemCount('Rush Order: The Tannery')", 0) > 0 &&
+					    GarrisonInfo.GetShipmentInfoByType(Jobs.CurrentJob().Type).LandingPageInfo.ShipmentsCreated ==
+					    GarrisonInfo.GetShipmentInfoByType(Jobs.CurrentJob().Type).ShipmentCapacity)
+					{
+						Lua.DoString("RunMacroText(\"/use Rush Order: The Tannery\")");
+						Jobs.ResetSubTasks();
+						return true;
+					}
+					return false;
+				case GarrisonBuildingType.Blacksmithing:
+					if (Lua.GetReturnVal<int>("return GetItemCount('Rush Order: The Tannery')", 0) > 0 &&
+					    GarrisonInfo.GetShipmentInfoByType(Jobs.CurrentJob().Type).LandingPageInfo.ShipmentsCreated ==
+					    GarrisonInfo.GetShipmentInfoByType(Jobs.CurrentJob().Type).ShipmentCapacity)
+					{
+						Lua.DoString("RunMacroText(\"/use Rush Order: The Tannery\")");
+						Jobs.ResetSubTasks();
+						return true;
+					}
+					return false;
+				case GarrisonBuildingType.Tailoring:
+					if (Lua.GetReturnVal<int>("return GetItemCount('Rush Order: The Tannery')", 0) > 0 &&
+					    GarrisonInfo.GetShipmentInfoByType(Jobs.CurrentJob().Type).LandingPageInfo.ShipmentsCreated ==
+					    GarrisonInfo.GetShipmentInfoByType(Jobs.CurrentJob().Type).ShipmentCapacity)
+					{
+						Lua.DoString("RunMacroText(\"/use Rush Order: The Tannery\")");
+						Jobs.ResetSubTasks();
+						return true;
+					}
+					return false;
+				case GarrisonBuildingType.Engineering:
+					if (Lua.GetReturnVal<int>("return GetItemCount('Rush Order: Engineering Works')", 0) > 0 &&
+					    GarrisonInfo.GetShipmentInfoByType(Jobs.CurrentJob().Type).LandingPageInfo.ShipmentsCreated ==
+					    GarrisonInfo.GetShipmentInfoByType(Jobs.CurrentJob().Type).ShipmentCapacity)
+					{
+						Lua.DoString("RunMacroText(\"/use Rush Order: Engineering Works\")");
+						Jobs.ResetSubTasks();
+						return true;
+					}
+					return false;
+				case GarrisonBuildingType.Inscription:
+					if (Lua.GetReturnVal<int>("return GetItemCount('Rush Order: The Tannery')", 0) > 0 &&
+					    GarrisonInfo.GetShipmentInfoByType(Jobs.CurrentJob().Type).LandingPageInfo.ShipmentsCreated ==
+					    GarrisonInfo.GetShipmentInfoByType(Jobs.CurrentJob().Type).ShipmentCapacity)
+					{
+						Lua.DoString("RunMacroText(\"/use Rush Order: The Tannery\")");
+						Jobs.ResetSubTasks();
+						return true;
+					}
+					return false;
+			}
 			return false;
 		}
 	}

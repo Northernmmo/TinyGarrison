@@ -2,6 +2,7 @@
 using System.Linq;
 using Styx;
 using Styx.CommonBot;
+using Styx.CommonBot.Coroutines;
 using Styx.WoWInternals.Garrison;
 using Styx.WoWInternals.DB;
 using Styx.WoWInternals;
@@ -98,7 +99,7 @@ namespace TinyGarrison
 
 			MySubTasks.Clear();
 			MySubTasks.Add(SubTask.MoveToJob);
-			if (CurrentJob().ShipmentCrateEntry != 0 && GarrisonInfo.GetShipmentInfoByType(CurrentJob().Type).LandingPageInfo.ShipmentsReady > 0) MySubTasks.Add(SubTask.LootShipment);
+			if (CurrentJob().ShipmentCrateEntry != 0) MySubTasks.Add(SubTask.LootShipment);
 			if (CurrentJob().Type == GarrisonBuildingType.HerbGarden) MySubTasks.Add(SubTask.GatherHerbs);
 			if (CurrentJob().Type == GarrisonBuildingType.Mines) MySubTasks.Add(SubTask.GatherOre);
 			if (CurrentJob().ProfessionNpcEntry != 0) MySubTasks.Add(SubTask.Profession);
@@ -120,6 +121,11 @@ namespace TinyGarrison
 		public static SubTask CurrentSubTask()
 		{
 			return MySubTasks[_currentSubTaskIndex];
+		}
+
+		public static void ResetSubTasks()
+		{
+			_currentSubTaskIndex = 0;
 		}
 	}
 }
