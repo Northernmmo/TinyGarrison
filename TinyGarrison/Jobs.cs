@@ -10,8 +10,6 @@ using Styx.WoWInternals.WoWObjects;
 
 namespace TinyGarrison
 {
-	public enum SubTask { MoveToJob = -1, LootShipment = 0, LootGarrisonCache = 1, StartWorkOrders = 2, GatherHerbs = 3 , GatherOre = 4, Profession = 5 };
-
 	class Job
 	{
 		public Job(string name, GarrisonBuildingType type, WoWPoint location, int shipmentCrateEntry, int workOrderNpcEntry, int professionNpcEntry)
@@ -35,12 +33,10 @@ namespace TinyGarrison
 	class Jobs
 	{
 		private static List<Job> MyJobs = new List<Job>();
-		private static List<SubTask> MySubTasks = new List<SubTask>();
 
 		private static Dictionary<int, WoWPoint> PlotIdLocations = new Dictionary<int, WoWPoint>();
 		public static readonly LocalPlayer Me = StyxWoW.Me;
 		private static int _currentJobIndex;
-		private static int _currentSubTaskIndex;
 
 		public static void Initialize()
 		{
@@ -79,53 +75,20 @@ namespace TinyGarrison
 			
 			// Add last building to job list
 			MyJobs.Add(new Job("CommandTable", GarrisonBuildingType.Unknown, new WoWPoint(5559.691, 4604.524, 141.7168), 0, 0, 0));
+			MyJobs.Add(new Job("Done", GarrisonBuildingType.Unknown, new WoWPoint(0,0,0), 0, 0, 0));
 			
-			_currentJobIndex = 0;
-			_currentSubTaskIndex = 0;
-
-			MySubTasks.Clear();
-			MySubTasks.Add(SubTask.MoveToJob);
-			MySubTasks.Add(SubTask.LootGarrisonCache);
-			
+			_currentJobIndex = 0;	
 			Helpers.Log("Job List Created");
 		}
 
 		public static void NextJob()
 		{
 			_currentJobIndex++;
-			Lua.DoString("C_Garrison.RequestLandingPageShipmentInfo()");
-
-			_currentSubTaskIndex = 0;
-
-			MySubTasks.Clear();
-			MySubTasks.Add(SubTask.MoveToJob);
-			if (CurrentJob().ShipmentCrateEntry != 0) MySubTasks.Add(SubTask.LootShipment);
-			if (CurrentJob().Type == GarrisonBuildingType.HerbGarden) MySubTasks.Add(SubTask.GatherHerbs);
-			if (CurrentJob().Type == GarrisonBuildingType.Mines) MySubTasks.Add(SubTask.GatherOre);
-			if (CurrentJob().ProfessionNpcEntry != 0) MySubTasks.Add(SubTask.Profession);
-			if (CurrentJob().WorkOrderNpcEntry != 0 && CurrentJob().ShipmentCrateEntry != 0) MySubTasks.Add(SubTask.StartWorkOrders);
-		}
-
-		public static void NextSubTask()
-		{
-			Lua.DoString("C_Garrison.RequestLandingPageShipmentInfo()");
-			if (++_currentSubTaskIndex == MySubTasks.Count)
-				NextJob();
 		}
 
 		public static Job CurrentJob()
 		{
 			return MyJobs[_currentJobIndex];
-		}
-
-		public static SubTask CurrentSubTask()
-		{
-			return MySubTasks[_currentSubTaskIndex];
-		}
-
-		public static void ResetSubTasks()
-		{
-			_currentSubTaskIndex = 0;
 		}
 	}
 }

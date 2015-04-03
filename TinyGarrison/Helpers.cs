@@ -10,6 +10,15 @@ using Styx.WoWInternals.WoWObjects;
 using Styx.WoWInternals.DB;
 using Styx.WoWInternals;
 using Styx.WoWInternals.Garrison;
+using Styx.CommonBot.Coroutines;
+using Styx.WoWInternals;
+using Styx.WoWInternals.Garrison;
+using Styx.WoWInternals.WoWObjects;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace TinyGarrison
 {
@@ -33,7 +42,6 @@ namespace TinyGarrison
 
 			if (r == MoveResult.ReachedDestination)
 			{
-				Jobs.NextSubTask();
 				return true;
 			}
 			return false;
@@ -64,8 +72,60 @@ namespace TinyGarrison
 			return await MoveTo(pointFromTarget);
 		}
 
-		public static bool HasWorkOrderMaterial()
+		public static async Task<bool> LootShipment()
 		{
+			WoWGameObject ShipmentCrate =
+					ObjectManager.GetObjectsOfType<WoWGameObject>()
+						.Where(o => o.Entry == Jobs.CurrentJob().ShipmentCrateEntry)
+						.OrderBy(o => o.Distance).FirstOrDefault();
+
+			Lua.DoString("C_Garrison.RequestLandingPageShipmentInfo()");
+			await CommonCoroutines.WaitForLuaEvent("GARRISON_LANDINGPAGE_SHIPMENTS", 3000);
+
+			if (ShipmentCrate != null && ShipmentCrate.IsValid && ShipmentCrate.IsValid && GarrisonInfo.GetShipmentInfoByType(Jobs.CurrentJob().Type).LandingPageInfo.ShipmentsReady > 0)
+			{
+				Helpers.Log("Looting " + ShipmentCrate.Name);
+				ShipmentCrate.Interact();
+				await CommonCoroutines.WaitForLuaEvent("LOOT_OPENED", 3000);
+				await CommonCoroutines.WaitForLuaEvent("LOOT_CLOSED", 3000);
+				return true;
+			}
+
+			return true;
+		}
+
+		public static async Task<bool> StartWorkOrders()
+		{
+			WoWUnit WorkOrderNpc =
+				ObjectManager.GetObjectsOfType<WoWUnit>()
+					.Where(o => o.Entry == Jobs.CurrentJob().WorkOrderNpcEntry)
+					.OrderBy(o => o.Distance).FirstOrDefault();
+
+			if (WorkOrderNpc != null && WorkOrderNpc.IsValid)
+			{
+				if (!WorkOrderNpc.WithinInteractRange)
+					return await Helpers.MoveTo(WorkOrderNpc);
+
+				Log("Starting " + Jobs.CurrentJob().Name + " work orders");
+				WorkOrderNpc.Interact();
+				await CommonCoroutines.WaitForLuaEvent("SHIPMENT_CRAFTER_OPENED", 3000);
+				await CommonCoroutines.WaitForLuaEvent("SHIPMENT_CRAFTER_INFO", 3000);
+				Lua.DoString("GarrisonCapacitiveDisplayFrame.CreateAllWorkOrdersButton:Click()");
+				await CommonCoroutines.WaitForLuaEvent("BAG_UPDATE_DELAYED", 3000);
+				Lua.DoString("GarrisonCapacitiveDisplayFrameCloseButton:Click()");
+				await CommonCoroutines.WaitForLuaEvent("SHIPMENT_CRAFTER_CLOSED", 3000);
+				return true;
+			}
+
+			return true;
+		}
+
+		public static bool CanStartWorkOrder()
+		{
+			Log("checking if we can start work orders");
+			if (GarrisonInfo.GetShipmentInfoByType(Jobs.CurrentJob().Type).LandingPageInfo.ShipmentsCreated == GarrisonInfo.GetShipmentInfoByType(Jobs.CurrentJob().Type).ShipmentCapacity)
+				return false;
+
 			switch (Jobs.CurrentJob().Type)
 			{
 				case GarrisonBuildingType.HerbGarden:
@@ -91,98 +151,6 @@ namespace TinyGarrison
 					return Lua.GetReturnVal<int>("return GetItemCount('Cerulean Pigment')", 0) >= 2;
 			}
 
-			return false;
-		}
-
-		public static async Task<bool> UseRushOrder()
-		{
-			Lua.DoString("C_Garrison.RequestLandingPageShipmentInfo()");
-			await CommonCoroutines.WaitForLuaEvent("GARRISON_LANDINGPAGE_SHIPMENTS", 3000);
-			Log("checking rush orders");
-			Log("Created: " + GarrisonInfo.GetShipmentInfoByType(Jobs.CurrentJob().Type).LandingPageInfo.ShipmentsCreated + " capacity: " + GarrisonInfo.GetShipmentInfoByType(Jobs.CurrentJob().Type).ShipmentCapacity);
-			switch (Jobs.CurrentJob().Type)
-			{
-				case GarrisonBuildingType.Enchanting:
-					if (Lua.GetReturnVal<int>("return GetItemCount('Rush Order: The Tannery')", 0) > 0 &&
-					    GarrisonInfo.GetShipmentInfoByType(Jobs.CurrentJob().Type).LandingPageInfo.ShipmentsCreated ==
-					    GarrisonInfo.GetShipmentInfoByType(Jobs.CurrentJob().Type).ShipmentCapacity)
-					{
-						Lua.DoString("RunMacroText(\"/use Rush Order: The Tannery\")");
-						Jobs.ResetSubTasks();
-						return true;
-					}
-					return false;
-				case GarrisonBuildingType.Alchemy:
-					if (Lua.GetReturnVal<int>("return GetItemCount('Rush Order: The Tannery')", 0) > 0 &&
-					    GarrisonInfo.GetShipmentInfoByType(Jobs.CurrentJob().Type).LandingPageInfo.ShipmentsCreated ==
-					    GarrisonInfo.GetShipmentInfoByType(Jobs.CurrentJob().Type).ShipmentCapacity)
-					{
-						Lua.DoString("RunMacroText(\"/use Rush Order: The Tannery\")");
-						Jobs.ResetSubTasks();
-						return true;
-					}
-					return false;
-				case GarrisonBuildingType.Leatherworking:
-					if (Lua.GetReturnVal<int>("return GetItemCount('Rush Order: The Tannery')", 0) > 0 &&
-					    GarrisonInfo.GetShipmentInfoByType(Jobs.CurrentJob().Type).LandingPageInfo.ShipmentsCreated ==
-					    GarrisonInfo.GetShipmentInfoByType(Jobs.CurrentJob().Type).ShipmentCapacity)
-					{
-						Lua.DoString("RunMacroText(\"/use Rush Order: The Tannery\")");
-						Jobs.ResetSubTasks();
-						return true;
-					}
-					return false;
-				case GarrisonBuildingType.Jewelcrafting:
-					if (Lua.GetReturnVal<int>("return GetItemCount('Rush Order: The Tannery')", 0) > 0 &&
-					    GarrisonInfo.GetShipmentInfoByType(Jobs.CurrentJob().Type).LandingPageInfo.ShipmentsCreated ==
-					    GarrisonInfo.GetShipmentInfoByType(Jobs.CurrentJob().Type).ShipmentCapacity)
-					{
-						Lua.DoString("RunMacroText(\"/use Rush Order: The Tannery\")");
-						Jobs.ResetSubTasks();
-						return true;
-					}
-					return false;
-				case GarrisonBuildingType.Blacksmithing:
-					if (Lua.GetReturnVal<int>("return GetItemCount('Rush Order: The Tannery')", 0) > 0 &&
-					    GarrisonInfo.GetShipmentInfoByType(Jobs.CurrentJob().Type).LandingPageInfo.ShipmentsCreated ==
-					    GarrisonInfo.GetShipmentInfoByType(Jobs.CurrentJob().Type).ShipmentCapacity)
-					{
-						Lua.DoString("RunMacroText(\"/use Rush Order: The Tannery\")");
-						Jobs.ResetSubTasks();
-						return true;
-					}
-					return false;
-				case GarrisonBuildingType.Tailoring:
-					if (Lua.GetReturnVal<int>("return GetItemCount('Rush Order: The Tannery')", 0) > 0 &&
-					    GarrisonInfo.GetShipmentInfoByType(Jobs.CurrentJob().Type).LandingPageInfo.ShipmentsCreated ==
-					    GarrisonInfo.GetShipmentInfoByType(Jobs.CurrentJob().Type).ShipmentCapacity)
-					{
-						Lua.DoString("RunMacroText(\"/use Rush Order: The Tannery\")");
-						Jobs.ResetSubTasks();
-						return true;
-					}
-					return false;
-				case GarrisonBuildingType.Engineering:
-					if (Lua.GetReturnVal<int>("return GetItemCount('Rush Order: Engineering Works')", 0) > 0 &&
-					    GarrisonInfo.GetShipmentInfoByType(Jobs.CurrentJob().Type).LandingPageInfo.ShipmentsCreated ==
-					    GarrisonInfo.GetShipmentInfoByType(Jobs.CurrentJob().Type).ShipmentCapacity)
-					{
-						Lua.DoString("RunMacroText(\"/use Rush Order: Engineering Works\")");
-						Jobs.ResetSubTasks();
-						return true;
-					}
-					return false;
-				case GarrisonBuildingType.Inscription:
-					if (Lua.GetReturnVal<int>("return GetItemCount('Rush Order: The Tannery')", 0) > 0 &&
-					    GarrisonInfo.GetShipmentInfoByType(Jobs.CurrentJob().Type).LandingPageInfo.ShipmentsCreated ==
-					    GarrisonInfo.GetShipmentInfoByType(Jobs.CurrentJob().Type).ShipmentCapacity)
-					{
-						Lua.DoString("RunMacroText(\"/use Rush Order: The Tannery\")");
-						Jobs.ResetSubTasks();
-						return true;
-					}
-					return false;
-			}
 			return false;
 		}
 	}

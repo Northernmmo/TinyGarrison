@@ -10,6 +10,7 @@ using Styx.TreeSharp;
 using Styx.WoWInternals;
 using Styx.WoWInternals.WoWObjects;
 using Buddy.Coroutines;
+using Styx.WoWInternals.DB;
 
 namespace TinyGarrison
 {
@@ -33,28 +34,27 @@ namespace TinyGarrison
 		    if (await Loot()) return true;
 		    #endregion
 
-			if (Jobs.CurrentJob() != null)
+			switch (Jobs.CurrentJob().Type)
 			{
-				switch (Jobs.CurrentSubTask())
-				{
-					case SubTask.MoveToJob:
-						return await Helpers.MoveToJob(Jobs.CurrentJob().Location);
-					case SubTask.LootGarrisonCache:
-						return await SubTasks.LootGarrisonCache();
-					case SubTask.LootShipment:
-						return await SubTasks.LootShipments();
-					case SubTask.GatherHerbs:
-						return await SubTasks.GatherHerbs();
-					case SubTask.GatherOre:
-						return await SubTasks.GatherOre();
-					case SubTask.StartWorkOrders:
-						return await SubTasks.StartWorkOrders();
-					case SubTask.Profession:
-						return await SubTasks.Profession();
-				}
+				case GarrisonBuildingType.Unknown:
+					switch (Jobs.CurrentJob().Name)
+					{
+						case "GarrisonCache":
+							return await Tasks.GarrisonCache.Handler();
+						case "CommandTable":
+							return await Tasks.CommandTable.Handler();
+						case "Done":
+							Helpers.Log("Done");
+							return true;
+					}
+					return true;
+				case GarrisonBuildingType.HerbGarden:
+					return await Tasks.HerbGarden.Handler();
+				case GarrisonBuildingType.Mines:
+					return await Tasks.Mines.Handler();
 			}
-
-			Helpers.Log("Done");
+			if (Jobs.CurrentJob().ProfessionNpcEntry != 0)
+				return await Tasks.ProfessionBuilding.Handler();
 			return true;
 	    }
 

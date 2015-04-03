@@ -69,7 +69,11 @@
   <ItemGroup>
     <Compile Include="Helpers.cs" />
     <Compile Include="Jobs.cs" />
-    <Compile Include="SubTasks.cs" />
+    <Compile Include="Tasks\CommandTable.cs" />
+    <Compile Include="Tasks\GarrisonCache.cs" />
+    <Compile Include="Tasks\HerbGarden.cs" />
+    <Compile Include="Tasks\Mines.cs" />
+    <Compile Include="Tasks\ProfessionBuilding.cs" />
     <Compile Include="TinyGarrison.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
