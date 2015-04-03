@@ -54,6 +54,10 @@ namespace TinyGarrison.Tasks
 				return true;
 			}
 
+			// Move back to entrance
+			if (StyxWoW.Me.Location.Distance(Jobs.CurrentJob().Location) > 10)
+				return await Helpers.MoveTo(Jobs.CurrentJob().Location);
+
 			// Start Work Orders
 			Lua.DoString("C_Garrison.RequestLandingPageShipmentInfo()");
 			await CommonCoroutines.WaitForLuaEvent("GARRISON_LANDINGPAGE_SHIPMENTS", 3000);
