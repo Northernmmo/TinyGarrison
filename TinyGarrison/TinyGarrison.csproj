@@ -75,6 +75,7 @@
     <Compile Include="Tasks\Mines.cs" />
     <Compile Include="Tasks\PrimalTrader.cs" />
     <Compile Include="Tasks\ProfessionBuilding.cs" />
+    <Compile Include="Tasks\SalvageYard.cs" />
     <Compile Include="TinyGarrison.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

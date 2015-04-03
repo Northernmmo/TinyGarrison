@@ -54,6 +54,8 @@ namespace TinyGarrison
 					return await Tasks.HerbGarden.Handler();
 				case GarrisonBuildingType.Mines:
 					return await Tasks.Mines.Handler();
+				case GarrisonBuildingType.SalvageYard:
+					return await Tasks.SalvageYard.Handler();
 			}
 			if (Jobs.CurrentJob().ProfessionNpcEntry != 0)
 				return await Tasks.ProfessionBuilding.Handler();
