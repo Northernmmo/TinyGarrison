@@ -7,6 +7,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Styx.CommonBot;
+using Styx.CommonBot.Profiles.Quest.Order;
+using Styx.WoWInternals.DB;
 using Styx.WoWInternals.Garrison;
 
 namespace TinyGarrison.Tasks
@@ -27,32 +30,59 @@ namespace TinyGarrison.Tasks
 			// Loot Shipments
 			await Helpers.LootShipment();
 
-			// Start Work Orders
 			Lua.DoString("C_Garrison.RequestLandingPageShipmentInfo()");
 			await CommonCoroutines.WaitForLuaEvent("GARRISON_LANDINGPAGE_SHIPMENTS", 3000);
+			int shipmentsReadyToStart =
+				GarrisonInfo.GetShipmentInfoByType(Jobs.CurrentJob().Type).ShipmentCapacity -
+				GarrisonInfo.GetShipmentInfoByType(Jobs.CurrentJob().Type).LandingPageInfo.ShipmentsCreated;
 
-			if (GarrisonInfo.GetShipmentInfoByType(Jobs.CurrentJob().Type).LandingPageInfo.ShipmentsCreated !=
-				GarrisonInfo.GetShipmentInfoByType(Jobs.CurrentJob().Type).ShipmentCapacity && Helpers.HasWorkOrderMaterial())
+			// Start Work Orders
+			if (shipmentsReadyToStart > 0)
 			{
-				WoWUnit WorkOrderNpc =
-				ObjectManager.GetObjectsOfType<WoWUnit>()
-					.Where(o => o.Entry == Jobs.CurrentJob().WorkOrderNpcEntry)
-					.OrderBy(o => o.Distance).FirstOrDefault();
-
-				if (WorkOrderNpc != null && WorkOrderNpc.IsValid)
+				// Mill any herbs we need
+				if (Jobs.CurrentJob().ProfessionNpcEntry == 79829)
 				{
-					if (!WorkOrderNpc.WithinInteractRange)
-						await Helpers.MoveTo(WorkOrderNpc);
+					WoWItem herbStack = ObjectManager.GetObjectsOfType<WoWItem>().Where(o =>
+						o.Entry == 109124 || o.Entry == 109125 || o.Entry == 109126 || o.Entry == 109127 || o.Entry == 109128 ||
+						o.Entry == 109129)
+						.OrderByDescending(o => o.StackCount).FirstOrDefault();
 
-					Helpers.Log("Starting " + Jobs.CurrentJob().Name + " work orders");
-					WorkOrderNpc.Interact();
-					await CommonCoroutines.WaitForLuaEvent("SHIPMENT_CRAFTER_OPENED", 3000);
-					await CommonCoroutines.WaitForLuaEvent("SHIPMENT_CRAFTER_INFO", 3000);
-					Lua.DoString("GarrisonCapacitiveDisplayFrame.CreateAllWorkOrdersButton:Click()");
-					await CommonCoroutines.WaitForLuaEvent("BAG_UPDATE_DELAYED", 3000);
-					Lua.DoString("GarrisonCapacitiveDisplayFrameCloseButton:Click()");
-					await CommonCoroutines.WaitForLuaEvent("SHIPMENT_CRAFTER_CLOSED", 3000);
-					return true;
+					if (herbStack != null && herbStack.IsValid &&  herbStack.StackCount >= 5 && Lua.GetReturnVal<int>("return GetItemCount('Cerulean Pigment')", 0) < shipmentsReadyToStart * 2)
+					{
+						Helpers.Log("Milling herbs");
+						if (SpellManager.HasSpell(51005)) // Has the inscription spell, mill
+							WoWSpell.FromId(51005).Cast();
+						else // Doesn't have inscription, use mortar
+							ObjectManager.GetObjectsOfType<WoWItem>().First(o => o.Entry == 114942).Interact();
+						herbStack.Interact();
+						await CommonCoroutines.WaitForLuaEvent("LOOT_OPENED", 3000);
+						await CommonCoroutines.WaitForLuaEvent("LOOT_CLOSED", 3000);
+						return true;
+					}
+				}
+
+				if (Helpers.HasWorkOrderMaterial())
+				{
+					WoWUnit WorkOrderNpc =
+						ObjectManager.GetObjectsOfType<WoWUnit>()
+							.Where(o => o.Entry == Jobs.CurrentJob().WorkOrderNpcEntry)
+							.OrderBy(o => o.Distance).FirstOrDefault();
+
+					if (WorkOrderNpc != null && WorkOrderNpc.IsValid)
+					{
+						if (!WorkOrderNpc.WithinInteractRange)
+							await Helpers.MoveTo(WorkOrderNpc);
+
+						Helpers.Log("Starting " + Jobs.CurrentJob().Name + " work orders");
+						WorkOrderNpc.Interact();
+						await CommonCoroutines.WaitForLuaEvent("SHIPMENT_CRAFTER_OPENED", 3000);
+						await CommonCoroutines.WaitForLuaEvent("SHIPMENT_CRAFTER_INFO", 3000);
+						Lua.DoString("GarrisonCapacitiveDisplayFrame.CreateAllWorkOrdersButton:Click()");
+						await CommonCoroutines.WaitForLuaEvent("BAG_UPDATE_DELAYED", 3000);
+						Lua.DoString("GarrisonCapacitiveDisplayFrameCloseButton:Click()");
+						await CommonCoroutines.WaitForLuaEvent("SHIPMENT_CRAFTER_CLOSED", 3000);
+						return true;
+					}
 				}
 			}
 

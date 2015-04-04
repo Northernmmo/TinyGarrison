@@ -24,8 +24,8 @@ namespace TinyGarrison.Tasks
 			if (!_alreadyMoved && Jobs.CurrentJob().Location.Distance(StyxWoW.Me.Location) < 100)
 			{
 				bool PossibleGarrisonCache =
-				ObjectManager.GetObjectsOfType<WoWGameObject>()
-					.Any(o => o.Entry == Jobs.CurrentJob().ShipmentCrateEntry);
+					ObjectManager.GetObjectsOfType<WoWGameObject>()
+						.Any(o => o.Entry == 235389 || o.Entry == 237191 || o.Entry == 237720);
 				if (!PossibleGarrisonCache) _alreadyMoved = true;
 			}
 
@@ -39,7 +39,7 @@ namespace TinyGarrison.Tasks
 			// Loot GarrisonCache
 			WoWGameObject GarrisonCache =
 				ObjectManager.GetObjectsOfType<WoWGameObject>()
-					.Where(o => o.Entry == Jobs.CurrentJob().ShipmentCrateEntry)
+					.Where(o => o.Entry == 235389 || o.Entry == 237191 || o.Entry == 237720)
 					.OrderBy(o => o.Distance).FirstOrDefault();
 
 			if (GarrisonCache != null && GarrisonCache.IsValid)

@@ -133,13 +133,13 @@ namespace TinyGarrison
 				case 169092: //Enchanting
 					return Lua.GetReturnVal<bool>("return GetItemCount('Luminous Shard') >= 1", 0);
 				case 171690: //Blacksmithing
-					return false;
+					return Lua.GetReturnVal<bool>("return GetItemCount('True Iron Ore') >= 20 and GetItemCount('Blackrock Ore') >= 10", 0);
 				case 168835: //Tailoring
-					return false;
+					return Lua.GetReturnVal<bool>("return GetItemCount('Sumptuous Fur') >= 20 and GetItemCount('Gorgrond Flytrap') >= 10", 0);
 				case 169080: //Engineering
-					return false;
+					return Lua.GetReturnVal<bool>("return GetItemCount('True Iron Ore') >= 15 and GetItemCount('Blackrock Ore') >= 15", 0);
 				case 169081: //Inscription
-					return false;
+					return Lua.GetReturnVal<bool>("return GetItemCount('Cerulean Pigment') >= 10", 0);
 			}
 
 			return false;
