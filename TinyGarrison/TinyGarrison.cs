@@ -41,6 +41,8 @@ namespace TinyGarrison
 					{
 						case "GarrisonCache":
 							return await Tasks.GarrisonCache.Handler();
+						case "Profession":
+							return await Tasks.Profession.Handler();
 						case "PrimalTrader":
 							return await Tasks.PrimalTrader.Handler();
 						case "CommandTable":
@@ -57,7 +59,7 @@ namespace TinyGarrison
 				case GarrisonBuildingType.SalvageYard:
 					return await Tasks.SalvageYard.Handler();
 			}
-			if (Jobs.CurrentJob().ProfessionNpcEntry != 0)
+			if (Jobs.CurrentJob().ProfessionNpcEntry != 0 && Jobs.CurrentJob().WorkOrderNpcEntry != 0)
 				return await Tasks.ProfessionBuilding.Handler();
 			return true;
 	    }

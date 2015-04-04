@@ -120,6 +120,31 @@ namespace TinyGarrison
 			return true;
 		}
 
+		public static bool HasProfessionMaterial()
+		{
+			switch (Jobs.CurrentJob().ProfessionNpcEntry)
+			{
+				case 171391: //Leatherworking
+					return Lua.GetReturnVal<bool>("return GetItemCount('Raw Beast Hide') >= 20 and GetItemCount('Gorgrond Flytrap') >= 10", 0);
+				case 156587: //Alchemy
+					return Lua.GetReturnVal<bool>("return GetItemCount('Frostweed') >= 20 and GetItemCount('Blackrock Ore') >= 10", 0);
+				case 170700: //Jewelcrafting
+					return Lua.GetReturnVal<bool>("return GetItemCount('Blackrock Ore') >= 20 and GetItemCount('True Iron Ore') >= 10", 0);
+				case 169092: //Enchanting
+					return Lua.GetReturnVal<bool>("return GetItemCount('Luminous Shard') >= 1", 0);
+				case 171690: //Blacksmithing
+					return false;
+				case 168835: //Tailoring
+					return false;
+				case 169080: //Engineering
+					return false;
+				case 169081: //Inscription
+					return false;
+			}
+
+			return false;
+		}
+
 		public static bool HasWorkOrderMaterial()
 		{
 			switch (Jobs.CurrentJob().Type)

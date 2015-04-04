@@ -51,6 +51,18 @@ namespace TinyGarrison
 			MyJobs.Add(new Job("GarrisonCache", GarrisonBuildingType.Unknown, new WoWPoint(5593.86, 4586.82, 136.61), 237191, 0, 0));
 			MyJobs.Add(new Job("HerbGarden", GarrisonBuildingType.HerbGarden, new WoWPoint(5414.47, 4573.50, 137.53), 239238, 85783, 0));
 			MyJobs.Add(new Job("Mines", GarrisonBuildingType.Mines, new WoWPoint(5475.488, 4452.166, 144.4591), 239237, 81688, 0));
+
+			// Add professions
+			if (SpellManager.HasSpell("Leatherworking")) MyJobs.Add(new Job("Profession", GarrisonBuildingType.Unknown, new WoWPoint(5468.646, 4447.296, 144.7437), 0, 0, 171391));
+			if (SpellManager.HasSpell("Alchemy")) MyJobs.Add(new Job("Profession", GarrisonBuildingType.Unknown, new WoWPoint(5468.646, 4447.296, 144.7437), 0, 0, 156587));
+			if (SpellManager.HasSpell("Jewelcrafting")) MyJobs.Add(new Job("Profession", GarrisonBuildingType.Unknown, new WoWPoint(5468.646, 4447.296, 144.7437), 0, 0, 170700));
+			if (SpellManager.HasSpell("Enchanting")) MyJobs.Add(new Job("Profession", GarrisonBuildingType.Unknown, new WoWPoint(5468.646, 4447.296, 144.7437), 0, 0, 169092));
+			if (SpellManager.HasSpell("Blacksmithing")) MyJobs.Add(new Job("Profession", GarrisonBuildingType.Unknown, new WoWPoint(5468.646, 4447.296, 144.7437), 0, 0, 171690));
+			if (SpellManager.HasSpell("Tailoring")) MyJobs.Add(new Job("Profession", GarrisonBuildingType.Unknown, new WoWPoint(5468.646, 4447.296, 144.7437), 0, 0, 168835));
+			if (SpellManager.HasSpell("Engineering")) MyJobs.Add(new Job("Profession", GarrisonBuildingType.Unknown, new WoWPoint(5468.646, 4447.296, 144.7437), 0, 0, 169080));
+			if (SpellManager.HasSpell("Inscription")) MyJobs.Add(new Job("Profession", GarrisonBuildingType.Unknown, new WoWPoint(5468.646, 4447.296, 144.7437), 0, 0, 169081));
+
+			// Add primal trader to job list
 			MyJobs.Add(new Job("PrimalTrader", GarrisonBuildingType.Unknown, new WoWPoint(5577.58, 4388.634, 136.4497), 0, 84967, 0));
 
 			// Add small buildings to job list

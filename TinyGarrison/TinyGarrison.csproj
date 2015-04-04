@@ -74,6 +74,7 @@
     <Compile Include="Tasks\HerbGarden.cs" />
     <Compile Include="Tasks\Mines.cs" />
     <Compile Include="Tasks\PrimalTrader.cs" />
+    <Compile Include="Tasks\Profession.cs" />
     <Compile Include="Tasks\ProfessionBuilding.cs" />
     <Compile Include="Tasks\SalvageYard.cs" />
     <Compile Include="TinyGarrison.cs" />
