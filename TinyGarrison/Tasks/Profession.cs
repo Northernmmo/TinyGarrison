@@ -39,19 +39,15 @@ namespace TinyGarrison.Tasks
 					WoWItem herbStack = ObjectManager.GetObjectsOfType<WoWItem>().Where(o =>
 						o.Entry == 109124 || o.Entry == 109125 || o.Entry == 109126 || o.Entry == 109127 || o.Entry == 109128 || o.Entry == 109129)
 						.OrderByDescending(o => o.StackCount).FirstOrDefault();
-				
-					if (herbStack != null && herbStack.IsValid  && herbStack.StackCount >= 5 )
+
+					if (herbStack != null && herbStack.IsValid  && herbStack.StackCount >= 5)
 					{
-						await CommonCoroutines.SleepForLagDuration();
 						WoWSpell.FromId(51005).Cast();
-						await CommonCoroutines.SleepForLagDuration();
 						herbStack.Interact();
 						await CommonCoroutines.WaitForLuaEvent("LOOT_OPENED", 3000);
 						await CommonCoroutines.WaitForLuaEvent("LOOT_CLOSED", 3000);
 						return true;
 					}
-
-					return true;
 				}
 
 				// Cast daily cooldown
@@ -63,8 +59,6 @@ namespace TinyGarrison.Tasks
 					await CommonCoroutines.WaitForLuaEvent("LOOT_CLOSED", 3000);
 					return true;
 				}
-
-				return true;
 			}
 
 			Jobs.NextJob();
