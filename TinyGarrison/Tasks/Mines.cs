@@ -1,19 +1,18 @@
-﻿using Styx;
+﻿using System.Linq;
+using System.Threading.Tasks;
+using Styx;
 using Styx.CommonBot.Coroutines;
 using Styx.WoWInternals;
-using Styx.WoWInternals.WoWObjects;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Styx.WoWInternals.Garrison;
+using Styx.WoWInternals.WoWObjects;
 
 namespace TinyGarrison.Tasks
 {
 	class Mines
 	{
-		private static bool _alreadyMoved = false;
+		private static bool _alreadyMoved;
+		public static readonly LocalPlayer Me = StyxWoW.Me;
+		private static WoWGameObject _oreObj;
 
 		public static async Task<bool> Handler()
 		{
@@ -28,7 +27,8 @@ namespace TinyGarrison.Tasks
 			await Helpers.LootShipment();
 
 			// Gather
-			WoWGameObject oreObj =
+			if (_oreObj == null)
+				_oreObj =
 				ObjectManager.GetObjectsOfType<WoWGameObject>()
 					.Where(o => o.CanUse() && o.Distance < 150)
 					.Where(
@@ -37,26 +37,40 @@ namespace TinyGarrison.Tasks
 							o.Entry == 232542)
 					.OrderBy(o => o.Distance).FirstOrDefault();
 
-			if (oreObj != null && oreObj.IsValid)
+			if (_oreObj != null && _oreObj.IsValid)
 			{
-				Helpers.Log("Gathering Ore");
-				if (!oreObj.WithinInteractRange)
-					return await Helpers.MoveTo(oreObj);
+				// Coffee & Pickaxe
+				if (Me.SubZoneId == 7329)
+				{
+					if (Me.BagItems.Any(o => o.Entry == 118897) && (!Me.HasAura(176049) || Me.GetAuraById(176049).StackCount < 2)) Me.BagItems.First(o => o.Entry == 118897).Interact();
+					if (Me.BagItems.Any(o => o.Entry == 118903) && !Me.HasAura(176061)) Me.BagItems.First(o => o.Entry == 118903).Interact();
+				}
+
+				if (!_oreObj.WithinInteractRange)
+				{
+					Helpers.MoveTo(_oreObj);
+					return true;
+				}
 
 				await CommonCoroutines.SleepForLagDuration();
 				if (StyxWoW.Me.Combat)
 					return true;
-				oreObj.Interact();
+				_oreObj.Interact();
 				if (StyxWoW.Me.Combat)
 					return true;
 				await CommonCoroutines.WaitForLuaEvent("LOOT_OPENED", 3000);
 				await CommonCoroutines.WaitForLuaEvent("LOOT_CLOSED", 3000);
+				_oreObj = null;
 				return true;
 			}
 
 			// Move back to entrance
 			if (StyxWoW.Me.Location.Distance(Jobs.CurrentJob().Location) > 10)
-				return await Helpers.MoveTo(Jobs.CurrentJob().Location);
+			{
+				Helpers.Log("Moving back to mine entrance");
+				await Helpers.MoveTo(Jobs.CurrentJob().Location);
+				return true;
+			}
 
 			// Start Work Orders
 			Lua.DoString("C_Garrison.RequestLandingPageShipmentInfo()");
@@ -65,18 +79,18 @@ namespace TinyGarrison.Tasks
 			if (GarrisonInfo.GetShipmentInfoByType(Jobs.CurrentJob().Type).LandingPageInfo.ShipmentsCreated !=
 			    GarrisonInfo.GetShipmentInfoByType(Jobs.CurrentJob().Type).ShipmentCapacity && Helpers.HasWorkOrderMaterial())
 			{
-				WoWUnit WorkOrderNpc =
+				WoWUnit workOrderNpc =
 				ObjectManager.GetObjectsOfType<WoWUnit>()
 					.Where(o => o.Entry == Jobs.CurrentJob().WorkOrderNpcEntry)
 					.OrderBy(o => o.Distance).FirstOrDefault();
 
-				if (WorkOrderNpc != null && WorkOrderNpc.IsValid)
+				if (workOrderNpc != null && workOrderNpc.IsValid)
 				{
-					if (!WorkOrderNpc.WithinInteractRange)
-						await Helpers.MoveTo(WorkOrderNpc);
+					if (!workOrderNpc.WithinInteractRange)
+						await Helpers.MoveTo(workOrderNpc);
 
 					Helpers.Log("Starting " + Jobs.CurrentJob().Name + " work orders");
-					WorkOrderNpc.Interact();
+					workOrderNpc.Interact();
 					await CommonCoroutines.WaitForLuaEvent("SHIPMENT_CRAFTER_OPENED", 3000);
 					await CommonCoroutines.WaitForLuaEvent("SHIPMENT_CRAFTER_INFO", 3000);
 					Lua.DoString("GarrisonCapacitiveDisplayFrame.CreateAllWorkOrdersButton:Click()");

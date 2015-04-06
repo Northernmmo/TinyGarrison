@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Media;
 using Styx;
 using Styx.Common;
@@ -6,19 +7,10 @@ using Styx.CommonBot;
 using Styx.CommonBot.Coroutines;
 using Styx.Helpers;
 using Styx.Pathing;
-using Styx.WoWInternals.WoWObjects;
+using Styx.WoWInternals;
 using Styx.WoWInternals.DB;
-using Styx.WoWInternals;
-using Styx.WoWInternals.Garrison;
-using Styx.CommonBot.Coroutines;
-using Styx.WoWInternals;
 using Styx.WoWInternals.Garrison;
 using Styx.WoWInternals.WoWObjects;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace TinyGarrison
 {
@@ -58,11 +50,11 @@ namespace TinyGarrison
 			return true;
 		}
 
-		public static async Task<bool> MoveTo(WoWGameObject destinationObject)
+		public static void MoveTo(WoWGameObject destinationObject)
 		{
 			WoWPoint pointFromTarget = WoWMathHelper.CalculatePointFrom(Me.Location, destinationObject.Location, destinationObject.InteractRange - 2);
 
-			return await MoveTo(pointFromTarget);
+			CommonCoroutines.MoveTo(pointFromTarget).RunSynchronously();
 		}
 
 		public static async Task<bool> MoveTo(WoWUnit destinationUnit)
@@ -74,7 +66,7 @@ namespace TinyGarrison
 
 		public static async Task<bool> LootShipment()
 		{
-			WoWGameObject ShipmentCrate =
+			WoWGameObject shipmentCrate =
 					ObjectManager.GetObjectsOfType<WoWGameObject>()
 						.Where(o => o.Entry == Jobs.CurrentJob().ShipmentCrateEntry)
 						.OrderBy(o => o.Distance).FirstOrDefault();
@@ -82,10 +74,10 @@ namespace TinyGarrison
 			Lua.DoString("C_Garrison.RequestLandingPageShipmentInfo()");
 			await CommonCoroutines.WaitForLuaEvent("GARRISON_LANDINGPAGE_SHIPMENTS", 3000);
 
-			if (ShipmentCrate != null && ShipmentCrate.IsValid && ShipmentCrate.IsValid && GarrisonInfo.GetShipmentInfoByType(Jobs.CurrentJob().Type).LandingPageInfo.ShipmentsReady > 0)
+			if (shipmentCrate != null && shipmentCrate.IsValid && shipmentCrate.IsValid && GarrisonInfo.GetShipmentInfoByType(Jobs.CurrentJob().Type).LandingPageInfo.ShipmentsReady > 0)
 			{
-				Log("Looting " + ShipmentCrate.Name);
-				ShipmentCrate.Interact();
+				Log("Looting " + shipmentCrate.Name);
+				shipmentCrate.Interact();
 				await CommonCoroutines.WaitForLuaEvent("LOOT_OPENED", 3000);
 				await CommonCoroutines.WaitForLuaEvent("LOOT_CLOSED", 3000);
 				return true;
@@ -96,18 +88,18 @@ namespace TinyGarrison
 
 		public static async Task<bool> StartWorkOrders()
 		{
-			WoWUnit WorkOrderNpc =
+			WoWUnit workOrderNpc =
 				ObjectManager.GetObjectsOfType<WoWUnit>()
 					.Where(o => o.Entry == Jobs.CurrentJob().WorkOrderNpcEntry)
 					.OrderBy(o => o.Distance).FirstOrDefault();
 
-			if (WorkOrderNpc != null && WorkOrderNpc.IsValid)
+			if (workOrderNpc != null && workOrderNpc.IsValid)
 			{
-				if (!WorkOrderNpc.WithinInteractRange)
-					return await Helpers.MoveTo(WorkOrderNpc);
+				if (!workOrderNpc.WithinInteractRange)
+					return await MoveTo(workOrderNpc);
 
 				Log("Starting " + Jobs.CurrentJob().Name + " work orders");
-				WorkOrderNpc.Interact();
+				workOrderNpc.Interact();
 				await CommonCoroutines.WaitForLuaEvent("SHIPMENT_CRAFTER_OPENED", 3000);
 				await CommonCoroutines.WaitForLuaEvent("SHIPMENT_CRAFTER_INFO", 3000);
 				Lua.DoString("GarrisonCapacitiveDisplayFrame.CreateAllWorkOrdersButton:Click()");

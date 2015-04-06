@@ -1,10 +1,7 @@
-﻿using Styx.CommonBot.Coroutines;
-using Styx.WoWInternals;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Linq;
 using System.Threading.Tasks;
+using Styx.CommonBot.Coroutines;
+using Styx.WoWInternals;
 using Styx.WoWInternals.WoWObjects;
 
 namespace TinyGarrison.Tasks
@@ -17,13 +14,6 @@ namespace TinyGarrison.Tasks
 		{
 			if (!WoWSpell.FromId(Jobs.CurrentJob().ProfessionNpcEntry).Cooldown)
 			{
-				// Move to Job
-				if (!_alreadyMoved)
-				{
-					_alreadyMoved = await Helpers.MoveToJob(Jobs.CurrentJob().Location);
-					return true;
-				}
-
 				// Craft any needed material
 				if (Jobs.CurrentJob().ProfessionNpcEntry == 169092 && Lua.GetReturnVal<bool>("return GetItemCount('Luminous Shard') < 1 and GetItemCount('Draenic Dust') >= 20", 0)) //Enchanting
 				{
@@ -53,6 +43,14 @@ namespace TinyGarrison.Tasks
 				// Cast daily cooldown
 				if (Helpers.HasProfessionMaterial() && WoWSpell.FromId(Jobs.CurrentJob().ProfessionNpcEntry).CanCast)
 				{
+					// Move to Job
+					if (!_alreadyMoved)
+					{
+						_alreadyMoved = await Helpers.MoveToJob(Jobs.CurrentJob().Location);
+						return true;
+					}
+
+					Helpers.Log("Crafting " + WoWSpell.FromId(Jobs.CurrentJob().ProfessionNpcEntry).Name);
 					await CommonCoroutines.SleepForLagDuration();
 					WoWSpell.FromId(Jobs.CurrentJob().ProfessionNpcEntry).Cast();
 					await CommonCoroutines.WaitForLuaEvent("LOOT_OPENED", 3000);

@@ -1,16 +1,10 @@
-﻿using Styx;
-using Styx.CommonBot.Coroutines;
-using Styx.WoWInternals;
-using Styx.WoWInternals.WoWObjects;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Linq;
 using System.Threading.Tasks;
 using Styx.CommonBot;
-using Styx.CommonBot.Profiles.Quest.Order;
-using Styx.WoWInternals.DB;
+using Styx.CommonBot.Coroutines;
+using Styx.WoWInternals;
 using Styx.WoWInternals.Garrison;
+using Styx.WoWInternals.WoWObjects;
 
 namespace TinyGarrison.Tasks
 {
@@ -63,18 +57,18 @@ namespace TinyGarrison.Tasks
 
 				if (Helpers.HasWorkOrderMaterial())
 				{
-					WoWUnit WorkOrderNpc =
+					WoWUnit workOrderNpc =
 						ObjectManager.GetObjectsOfType<WoWUnit>()
 							.Where(o => o.Entry == Jobs.CurrentJob().WorkOrderNpcEntry)
 							.OrderBy(o => o.Distance).FirstOrDefault();
 
-					if (WorkOrderNpc != null && WorkOrderNpc.IsValid)
+					if (workOrderNpc != null && workOrderNpc.IsValid)
 					{
-						if (!WorkOrderNpc.WithinInteractRange)
-							await Helpers.MoveTo(WorkOrderNpc);
+						if (!workOrderNpc.WithinInteractRange)
+							await Helpers.MoveTo(workOrderNpc);
 
 						Helpers.Log("Starting " + Jobs.CurrentJob().Name + " work orders");
-						WorkOrderNpc.Interact();
+						workOrderNpc.Interact();
 						await CommonCoroutines.WaitForLuaEvent("SHIPMENT_CRAFTER_OPENED", 3000);
 						await CommonCoroutines.WaitForLuaEvent("SHIPMENT_CRAFTER_INFO", 3000);
 						Lua.DoString("GarrisonCapacitiveDisplayFrame.CreateAllWorkOrdersButton:Click()");

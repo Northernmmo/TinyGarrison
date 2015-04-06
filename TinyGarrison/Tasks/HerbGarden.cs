@@ -1,19 +1,16 @@
-﻿using Styx;
+﻿using System.Linq;
+using System.Threading.Tasks;
+using Styx;
 using Styx.CommonBot.Coroutines;
 using Styx.WoWInternals;
 using Styx.WoWInternals.Garrison;
 using Styx.WoWInternals.WoWObjects;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace TinyGarrison.Tasks
 {
 	class HerbGarden
 	{
-		private static bool _alreadyMoved = false;
+		private static bool _alreadyMoved;
 
 		public static async Task<bool> Handler()
 		{
@@ -41,7 +38,7 @@ namespace TinyGarrison.Tasks
 			{
 				Helpers.Log("Gathering Herbs");
 				if (!herbObj.WithinInteractRange)
-					return await Helpers.MoveTo(herbObj);
+					Helpers.MoveTo(herbObj);
 
 				await CommonCoroutines.SleepForLagDuration();
 				if (StyxWoW.Me.Combat)
@@ -61,18 +58,18 @@ namespace TinyGarrison.Tasks
 			if (GarrisonInfo.GetShipmentInfoByType(Jobs.CurrentJob().Type).LandingPageInfo.ShipmentsCreated !=
 				GarrisonInfo.GetShipmentInfoByType(Jobs.CurrentJob().Type).ShipmentCapacity && Helpers.HasWorkOrderMaterial())
 			{
-				WoWUnit WorkOrderNpc =
+				WoWUnit workOrderNpc =
 				ObjectManager.GetObjectsOfType<WoWUnit>()
 					.Where(o => o.Entry == Jobs.CurrentJob().WorkOrderNpcEntry)
 					.OrderBy(o => o.Distance).FirstOrDefault();
 
-				if (WorkOrderNpc != null && WorkOrderNpc.IsValid)
+				if (workOrderNpc != null && workOrderNpc.IsValid)
 				{
-					if (!WorkOrderNpc.WithinInteractRange)
-						await Helpers.MoveTo(WorkOrderNpc);
+					if (!workOrderNpc.WithinInteractRange)
+						await Helpers.MoveTo(workOrderNpc);
 
 					Helpers.Log("Starting " + Jobs.CurrentJob().Name + " work orders");
-					WorkOrderNpc.Interact();
+					workOrderNpc.Interact();
 					await CommonCoroutines.WaitForLuaEvent("SHIPMENT_CRAFTER_OPENED", 3000);
 					await CommonCoroutines.WaitForLuaEvent("SHIPMENT_CRAFTER_INFO", 3000);
 					Lua.DoString("GarrisonCapacitiveDisplayFrame.CreateAllWorkOrdersButton:Click()");

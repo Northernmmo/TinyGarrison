@@ -8,9 +8,9 @@ using Styx.CommonBot;
 using Styx.CommonBot.Coroutines;
 using Styx.TreeSharp;
 using Styx.WoWInternals;
-using Styx.WoWInternals.WoWObjects;
-using Buddy.Coroutines;
 using Styx.WoWInternals.DB;
+using Styx.WoWInternals.WoWObjects;
+using TinyGarrison.Tasks;
 
 namespace TinyGarrison
 {
@@ -34,33 +34,41 @@ namespace TinyGarrison
 		    if (await Loot()) return true;
 		    #endregion
 
+			// Movement Buffs
+			if (Me.IsIndoors)
+			{
+				if (Me.Class == WoWClass.Shaman && !Me.HasAura("Ghost Wolf")) SpellManager.Cast("Ghost Wolf");
+				if (Me.Class == WoWClass.Druid && !Me.HasAura("Cat Form")) SpellManager.Cast("Cat Form");
+			}
+
+			// Job Handler
 			switch (Jobs.CurrentJob().Type)
 			{
 				case GarrisonBuildingType.Unknown:
 					switch (Jobs.CurrentJob().Name)
 					{
 						case "GarrisonCache":
-							return await Tasks.GarrisonCache.Handler();
+							return await GarrisonCache.Handler();
 						case "Profession":
-							return await Tasks.Profession.Handler();
+							return await Profession.Handler();
 						case "PrimalTrader":
-							return await Tasks.PrimalTrader.Handler();
+							return await PrimalTrader.Handler();
 						case "CommandTable":
-							return await Tasks.CommandTable.Handler();
+							return await CommandTable.Handler();
 						case "Done":
 							Helpers.Log("Done");
 							return true;
 					}
 					return true;
 				case GarrisonBuildingType.HerbGarden:
-					return await Tasks.HerbGarden.Handler();
+					return await HerbGarden.Handler();
 				case GarrisonBuildingType.Mines:
-					return await Tasks.Mines.Handler();
+					return await Mines.Handler();
 				case GarrisonBuildingType.SalvageYard:
-					return await Tasks.SalvageYard.Handler();
+					return await SalvageYard.Handler();
 			}
 			if (Jobs.CurrentJob().ProfessionNpcEntry != 0 && Jobs.CurrentJob().WorkOrderNpcEntry != 0)
-				return await Tasks.ProfessionBuilding.Handler();
+				return await ProfessionBuilding.Handler();
 			return true;
 	    }
 

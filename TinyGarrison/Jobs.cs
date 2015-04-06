@@ -2,10 +2,9 @@
 using System.Linq;
 using Styx;
 using Styx.CommonBot;
-using Styx.CommonBot.Coroutines;
-using Styx.WoWInternals.Garrison;
-using Styx.WoWInternals.DB;
 using Styx.WoWInternals;
+using Styx.WoWInternals.DB;
+using Styx.WoWInternals.Garrison;
 using Styx.WoWInternals.WoWObjects;
 
 namespace TinyGarrison
