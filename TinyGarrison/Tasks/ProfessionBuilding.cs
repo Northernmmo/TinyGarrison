@@ -21,6 +21,16 @@ namespace TinyGarrison.Tasks
 				return true;
 			}
 
+			// Use Rush Orders if we have enough material
+			Lua.DoString("C_Garrison.RequestLandingPageShipmentInfo()");
+			await CommonCoroutines.WaitForLuaEvent("GARRISON_LANDINGPAGE_SHIPMENTS", 3000);
+			int shipmentsStartedButNotReady =
+				GarrisonInfo.GetShipmentInfoByType(Jobs.CurrentJob().Type).LandingPageInfo.ShipmentsCreated -
+				GarrisonInfo.GetShipmentInfoByType(Jobs.CurrentJob().Type).LandingPageInfo.ShipmentsReady;
+
+			//if (shipmentsStartedButNotReady >= 5 && Helpers.CanUseRushOrder())
+
+
 			// Loot Shipments
 			await Helpers.LootShipment();
 

@@ -166,5 +166,35 @@ namespace TinyGarrison
 
 			return false;
 		}
+
+		public static bool CanUseRushOrder()
+		{
+			switch (Jobs.CurrentJob().Type)
+			{
+				case GarrisonBuildingType.Enchanting:
+					return Lua.GetReturnVal<bool>("return GetItemCount('Rush Order: Enchanter\'s Study') and GetItemCount('Draenic Dust') >= 5*5", 0);
+				case GarrisonBuildingType.Alchemy:
+					return Lua.GetReturnVal<bool>("return GetItemCount('Rush Order: Alchemy Lab') and GetItemCount('Frostweed') > 5*5", 0);
+				case GarrisonBuildingType.Leatherworking:
+					return Lua.GetReturnVal<int>("return GetItemCount('Rush Order: Alchemy Lab') and GetItemCount('Raw Beast Hide')", 0) >= 5;
+				case GarrisonBuildingType.Jewelcrafting:
+					return Lua.GetReturnVal<int>("return GetItemCount('Rush Order: Alchemy Lab') and GetItemCount('Blackrock Ore')", 0) >= 5;
+				case GarrisonBuildingType.Blacksmithing:
+					return Lua.GetReturnVal<int>("return GetItemCount('Rush Order: Alchemy Lab') and GetItemCount('True Iron Ore')", 0) >= 5;
+				case GarrisonBuildingType.Tailoring:
+					return Lua.GetReturnVal<int>("return GetItemCount('Rush Order: Alchemy Lab') and GetItemCount('Sumptuous Fur')", 0) >= 5;
+				case GarrisonBuildingType.Engineering:
+					return Lua.GetReturnVal<int>("return GetItemCount('Rush Order: Alchemy Lab') and GetItemCount('Blackrock Ore')", 0) >= 2 &&
+						Lua.GetReturnVal<int>("return GetItemCount('True Iron Ore')", 0) >= 2;
+				case GarrisonBuildingType.Inscription:
+					return Lua.GetReturnVal<bool>("return GetItemCount('Rush Order: Scribe\'s Quarters') >= 1", 0) &&
+					       ObjectManager.GetObjectsOfType<WoWItem>().Where(o =>
+						       o.Entry == 109124 || o.Entry == 109125 || o.Entry == 109126 || o.Entry == 109127 || o.Entry == 109128 ||
+						       o.Entry == 109129)
+						       .OrderByDescending(o => o.StackCount).First().StackCount >= 5*5;
+			}
+
+			return false;
+		}
 	}
 }

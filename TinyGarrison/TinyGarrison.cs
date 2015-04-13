@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using Bots.Grind;
 using CommonBehaviors.Actions;
 using Styx;
@@ -10,6 +11,7 @@ using Styx.TreeSharp;
 using Styx.WoWInternals;
 using Styx.WoWInternals.DB;
 using Styx.WoWInternals.WoWObjects;
+using TinyGarrison.GUI;
 using TinyGarrison.Tasks;
 
 namespace TinyGarrison
@@ -23,6 +25,7 @@ namespace TinyGarrison
 		public override PulseFlags PulseFlags { get { return PulseFlags.All; } }
 		public override Composite Root { get { return _root ?? (_root = new ActionRunCoroutine(ret => RootLogic())); } }
 		public override void OnSelected() { Jobs.Initialize(); }
+		public override Form ConfigurationForm { get { return new TinyGarrisonGUI(); } }
 		#endregion
 
 	    public static async Task<bool> RootLogic()

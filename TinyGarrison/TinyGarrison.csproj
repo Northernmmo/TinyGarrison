@@ -57,6 +57,8 @@
     <Reference Include="PresentationCore" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -67,6 +69,13 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="GUI\TinyGarrisonGUI.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\TinyGarrisonGUI.Designer.cs">
+      <DependentUpon>TinyGarrisonGUI.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\TinyGarrisonSettings.cs" />
     <Compile Include="Helpers.cs" />
     <Compile Include="Jobs.cs" />
     <Compile Include="Tasks\CommandTable.cs" />
@@ -79,6 +88,11 @@
     <Compile Include="Tasks\SalvageYard.cs" />
     <Compile Include="TinyGarrison.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="GUI\TinyGarrisonGUI.resx">
+      <DependentUpon>TinyGarrisonGUI.cs</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
