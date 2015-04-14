@@ -1,29 +1,23 @@
-﻿using Styx;
-using Styx.CommonBot.Coroutines;
-using Styx.Pathing;
-using Styx.WoWInternals.WoWObjects;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Styx;
+using Styx.CommonBot.Coroutines;
+using Styx.Pathing;
 
 namespace TinyGarrison
 {
 	class Movement
 	{
-		private static readonly LocalPlayer Me = StyxWoW.Me;
-
-		public static async Task<bool> MoveTo(WoWPoint destination)
+		public static async Task<bool> MoveTo(WoWPoint location)
 		{
-			var r = await CommonCoroutines.MoveTo(destination);
+			var r = await CommonCoroutines.MoveTo(location);
 
-			if (r == MoveResult.ReachedDestination)
-			{
-				Jobs.NextJob();
-				return true;
-			}
+			if (r != MoveResult.ReachedDestination) return true;
 
+			Jobs.NextJob();
 			return true;
 		}
 	}

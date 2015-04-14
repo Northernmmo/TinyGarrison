@@ -1,15 +1,18 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System;
+using System.Collections.Generic;
 using Styx;
-using Styx.CommonBot;
-using Styx.WoWInternals;
-using Styx.WoWInternals.DB;
-using Styx.WoWInternals.Garrison;
-using Styx.WoWInternals.WoWObjects;
 
 namespace TinyGarrison
 {
-	enum JobType { Move, GarrisonCache };
+	enum JobType
+	{
+		Done,
+		Move,
+		GarrisonCache,
+		Garden,
+		Mine,
+		Profession
+	};
 
 	class Job
 	{
@@ -25,20 +28,18 @@ namespace TinyGarrison
 
 	class Jobs
 	{
-		public static readonly LocalPlayer Me = StyxWoW.Me;
 		private static List<Job> MyJobs = new List<Job>();
 		private static int _currentJobIndex;
 
 		public static void Initialize()
 		{
-			if (!GUI.TinyGarrisonSettings.Instance.GarrisonCache) Tasks.GarrisonCache.AddJob();
-			if (!GUI.TinyGarrisonSettings.Instance.GardenMine)
-			{
-				Tasks.Garden.AddJob();
-				Tasks.Mine.AddJob();
-			}
+			Helpers.Log("Initializing..");
 
-			Helpers.Log("Initialized");
+			Tasks.GarrisonCache.Check();
+			Tasks.Garden.Check();
+			Tasks.Mine.Check();
+			Tasks.Profession.Check();
+			Add(JobType.Done);
 		}
 
 		public static void NextJob()
@@ -46,9 +47,12 @@ namespace TinyGarrison
 			_currentJobIndex++;
 		}
 
-		public static Job CurrentJob()
+		public static Job CurrentJob
 		{
-			return MyJobs[_currentJobIndex++];
+			get
+			{
+				return MyJobs[_currentJobIndex];
+			}
 		}
 
 		public static void Add(JobType type, WoWPoint location)
@@ -58,85 +62,7 @@ namespace TinyGarrison
 
 		public static void Add(JobType type)
 		{
-			MyJobs.Add(new Job(type, new WoWPoint(0, 0, 0)));
+			Add(type, new WoWPoint(0, 0, 0));
 		}
 	}
 }
-
-/*
-	class Jobs
-	{
-		private static List<Job> MyJobs = new List<Job>();
-
-		private static Dictionary<int, WoWPoint> PlotIdLocations = new Dictionary<int, WoWPoint>();
-		public static readonly LocalPlayer Me = StyxWoW.Me;
-		private static int _currentJobIndex;
-
-		public static void Initialize()
-		{
-			Lua.DoString("C_Garrison.RequestLandingPageShipmentInfo()");
-			PlotIdLocations.Clear();
-			PlotIdLocations.Add(18, new WoWPoint(5647.941, 4517.003, 119.2743));
-			PlotIdLocations.Add(19, new WoWPoint(5653.386, 4549.211, 119.2657));
-			PlotIdLocations.Add(20, new WoWPoint(5620.319, 4512.534, 120.1376));
-
-			// Add universal buildings to job list
-			MyJobs.Clear();
-			MyJobs.Add(new Job("GarrisonCache", GarrisonBuildingType.Unknown, new WoWPoint(5593.86, 4586.82, 136.61), 237191, 0, 0));
-			MyJobs.Add(new Job("HerbGarden", GarrisonBuildingType.HerbGarden, new WoWPoint(5414.47, 4573.50, 137.53), 239238, 85783, 0));
-			MyJobs.Add(new Job("Mines", GarrisonBuildingType.Mines, new WoWPoint(5475.488, 4452.166, 144.4591), 239237, 81688, 0));
-
-			// Add professions
-			if (SpellManager.HasSpell("Leatherworking")) MyJobs.Add(new Job("Profession", GarrisonBuildingType.Unknown, new WoWPoint(5468.646, 4447.296, 144.7437), 0, 0, 171391));
-			if (SpellManager.HasSpell("Alchemy")) MyJobs.Add(new Job("Profession", GarrisonBuildingType.Unknown, new WoWPoint(5468.646, 4447.296, 144.7437), 0, 0, 156587));
-			if (SpellManager.HasSpell("Jewelcrafting")) MyJobs.Add(new Job("Profession", GarrisonBuildingType.Unknown, new WoWPoint(5468.646, 4447.296, 144.7437), 0, 0, 170700));
-			if (SpellManager.HasSpell("Enchanting")) MyJobs.Add(new Job("Profession", GarrisonBuildingType.Unknown, new WoWPoint(5468.646, 4447.296, 144.7437), 0, 0, 169092));
-			if (SpellManager.HasSpell("Blacksmithing")) MyJobs.Add(new Job("Profession", GarrisonBuildingType.Unknown, new WoWPoint(5468.646, 4447.296, 144.7437), 0, 0, 171690));
-			if (SpellManager.HasSpell("Tailoring")) MyJobs.Add(new Job("Profession", GarrisonBuildingType.Unknown, new WoWPoint(5468.646, 4447.296, 144.7437), 0, 0, 168835));
-			if (SpellManager.HasSpell("Engineering")) MyJobs.Add(new Job("Profession", GarrisonBuildingType.Unknown, new WoWPoint(5468.646, 4447.296, 144.7437), 0, 0, 169080));
-			if (SpellManager.HasSpell("Inscription")) MyJobs.Add(new Job("Profession", GarrisonBuildingType.Unknown, new WoWPoint(5468.646, 4447.296, 144.7437), 0, 0, 169081));
-
-			// Add primal trader to job list
-			MyJobs.Add(new Job("PrimalTrader", GarrisonBuildingType.Unknown, new WoWPoint(5577.58, 4388.634, 136.4497), 0, 84967, 0));
-
-			// Add small buildings to job list
-			if (GarrisonInfo.OwnedBuildings.Any(o => o.Type == GarrisonBuildingType.Leatherworking))
-				MyJobs.Add(new Job("Leatherworking", GarrisonBuildingType.Leatherworking, PlotIdLocations[GarrisonInfo.GetOwnedBuildingByType(GarrisonBuildingType.Leatherworking).PlotInstanceId], 237104, 79833, 79834));
-			if (GarrisonInfo.OwnedBuildings.Any(o => o.Type == GarrisonBuildingType.Alchemy))
-				MyJobs.Add(new Job("Alchemy", GarrisonBuildingType.Alchemy, PlotIdLocations[GarrisonInfo.GetOwnedBuildingByType(GarrisonBuildingType.Alchemy).PlotInstanceId], 237120, 79814, 79813));
-			if (GarrisonInfo.OwnedBuildings.Any(o => o.Type == GarrisonBuildingType.Jewelcrafting))
-				MyJobs.Add(new Job("Jewelcrafting", GarrisonBuildingType.Jewelcrafting, PlotIdLocations[GarrisonInfo.GetOwnedBuildingByType(GarrisonBuildingType.Jewelcrafting).PlotInstanceId], 237069, 79830, 79832));
-			if (GarrisonInfo.OwnedBuildings.Any(o => o.Type == GarrisonBuildingType.Enchanting))
-				MyJobs.Add(new Job("Enchanting", GarrisonBuildingType.Enchanting, PlotIdLocations[GarrisonInfo.GetOwnedBuildingByType(GarrisonBuildingType.Enchanting).PlotInstanceId], 237138, 79820, 79821));
-			if (GarrisonInfo.OwnedBuildings.Any(o => o.Type == GarrisonBuildingType.Blacksmithing))
-				MyJobs.Add(new Job("Blacksmithing", GarrisonBuildingType.Blacksmithing, PlotIdLocations[GarrisonInfo.GetOwnedBuildingByType(GarrisonBuildingType.Blacksmithing).PlotInstanceId], 237131, 79817, 79867));
-			if (GarrisonInfo.OwnedBuildings.Any(o => o.Type == GarrisonBuildingType.Tailoring))
-				MyJobs.Add(new Job("Tailoring", GarrisonBuildingType.Tailoring, PlotIdLocations[GarrisonInfo.GetOwnedBuildingByType(GarrisonBuildingType.Tailoring).PlotInstanceId], 237186, 79863, 49864));
-			if (GarrisonInfo.OwnedBuildings.Any(o => o.Type == GarrisonBuildingType.Engineering))
-				MyJobs.Add(new Job("Engineering", GarrisonBuildingType.Engineering, PlotIdLocations[GarrisonInfo.GetOwnedBuildingByType(GarrisonBuildingType.Engineering).PlotInstanceId], 237146, 86696, 88610));
-			if (GarrisonInfo.OwnedBuildings.Any(o => o.Type == GarrisonBuildingType.Inscription))
-				MyJobs.Add(new Job("Inscription", GarrisonBuildingType.Inscription, PlotIdLocations[GarrisonInfo.GetOwnedBuildingByType(GarrisonBuildingType.Inscription).PlotInstanceId], 237066, 79831, 79829));
-			if (GarrisonInfo.OwnedBuildings.Any(o => o.Type == GarrisonBuildingType.SalvageYard))
-				MyJobs.Add(new Job("SalvageYard", GarrisonBuildingType.SalvageYard, PlotIdLocations[GarrisonInfo.GetOwnedBuildingByType(GarrisonBuildingType.SalvageYard).PlotInstanceId], 0, 79857, 0));
-			
-			// Add last building to job list
-			MyJobs.Add(new Job("CommandTable", GarrisonBuildingType.Unknown, new WoWPoint(5559.691, 4604.524, 141.7168), 0, 0, 0));
-			MyJobs.Add(new Job("Done", GarrisonBuildingType.Unknown, new WoWPoint(0,0,0), 0, 0, 0));
-			
-			_currentJobIndex = 0;	
-			Helpers.Log("Job List Created");
-		}
-
-		public static void NextJob()
-		{
-			_currentJobIndex++;
-		}
-
-		public static Job CurrentJob()
-		{
-			return MyJobs[_currentJobIndex];
-		}
-	}
-}
-
-	*/

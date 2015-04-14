@@ -80,14 +80,10 @@
     <Compile Include="Helpers.cs" />
     <Compile Include="Jobs.cs" />
     <Compile Include="Movement.cs" />
-    <Compile Include="Tasks\CommandTable.cs" />
+    <Compile Include="Tasks\Garden.cs" />
     <Compile Include="Tasks\GarrisonCache.cs" />
-    <Compile Include="Tasks\HerbGarden.cs" />
-    <Compile Include="Tasks\Mines.cs" />
-    <Compile Include="Tasks\PrimalTrader.cs" />
+    <Compile Include="Tasks\Mine.cs" />
     <Compile Include="Tasks\Profession.cs" />
-    <Compile Include="Tasks\ProfessionBuilding.cs" />
-    <Compile Include="Tasks\SalvageYard.cs" />
     <Compile Include="TinyGarrison.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

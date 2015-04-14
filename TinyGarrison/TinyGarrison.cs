@@ -9,10 +9,8 @@ using Styx.CommonBot;
 using Styx.CommonBot.Coroutines;
 using Styx.TreeSharp;
 using Styx.WoWInternals;
-using Styx.WoWInternals.DB;
 using Styx.WoWInternals.WoWObjects;
 using TinyGarrison.GUI;
-using TinyGarrison.Tasks;
 
 namespace TinyGarrison
 {
@@ -37,16 +35,27 @@ namespace TinyGarrison
 		    if (await Loot()) return true;
 		    #endregion
 
-			// Job Handler
-			switch (Jobs.CurrentJob().Type)
-			{
-				case JobType.Move:
-					return await Movement.MoveTo(Jobs.CurrentJob().Location);
+			switch (Jobs.CurrentJob.Type)
+		    {
+			    case JobType.Move:
+				    await Movement.MoveTo(Jobs.CurrentJob.Location);
+				    return true;
 				case JobType.GarrisonCache:
-					return await GarrisonCache.Execute();
-			}
+				    await Tasks.GarrisonCache.Execute();
+				    return true;
+				case JobType.Garden:
+				    await Tasks.Garden.Execute();
+				    return true;
+				case JobType.Mine:
+					await Tasks.Mine.Execute();
+					return true;
+				case JobType.Done:
+					Helpers.Log("Done");
+					TreeRoot.Stop("Done with Garrison Jobs");
+					return true;
+		    }
 
-			return true;
+		    return true;
 	    }
 
 	    #region DefaultBehaviorDeclerations
@@ -65,14 +74,14 @@ namespace TinyGarrison
 
 			try
 			{
-				WoWUnit lootTarget = ObjectManager.GetObjectsOfType<WoWUnit>()
+				var lootTarget = ObjectManager.GetObjectsOfType<WoWUnit>()
 					.Where(o => o.IsDead && o.CanLoot && o.Distance < 100 && o.KilledByMe)
 					.OrderBy(o => o.Distance)
 					.First();
 				if (lootTarget != null)
 				{
 					if (!lootTarget.WithinInteractRange)
-						return await Helpers.MoveTo(lootTarget.Location);
+						await CommonCoroutines.MoveTo(lootTarget.Location);
 
 					await CommonCoroutines.SleepForLagDuration();
 					lootTarget.Interact();
@@ -91,29 +100,3 @@ namespace TinyGarrison
 		#endregion
     }
 }
-
-/*
- * case GarrisonBuildingType.Unknown:
-					switch (Jobs.CurrentJob().Name)
-					{
-						case "GarrisonCache":
-							return await GarrisonCache.Handler();
-						case "Profession":
-							return await Profession.Handler();
-						case "PrimalTrader":
-							return await PrimalTrader.Handler();
-						case "CommandTable":
-							return await CommandTable.Handler();
-						case "Done":
-							Helpers.Log("Done");
-							return true;
-					}
-					return true;
-				case GarrisonBuildingType.HerbGarden:
-					return await HerbGarden.Handler();
-				case GarrisonBuildingType.Mines:
-					return await Mines.Handler();
-				case GarrisonBuildingType.SalvageYard:
-					return await SalvageYard.Handler();
-
-*/
