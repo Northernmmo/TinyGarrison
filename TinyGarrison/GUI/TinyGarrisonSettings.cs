@@ -15,11 +15,14 @@ namespace TinyGarrison.GUI
 		public static readonly TinyGarrisonSettings Instance = new TinyGarrisonSettings();
 
 		public TinyGarrisonSettings()
-            : base(Path.Combine(Logging.ApplicationPath, string.Format(@"BotBase/TinyGarrison/Settings/TinyGarrison-Settings-{0}.xml", StyxWoW.Me.Name)))
+			: base(Path.Combine(System.Environment.CurrentDirectory, string.Format(@"/BotBase/TinyGarrison/Settings/TinyGarrison-Settings-{0}.xml", StyxWoW.Me.Name)))
         {
         }
 
         [Setting, DefaultValue(true)]
         public bool GarrisonCache { get; set; }
+
+		[Setting, DefaultValue(true)]
+		public bool GardenMine { get; set; }
 	}
 }

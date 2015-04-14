@@ -69,6 +69,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Data.cs" />
     <Compile Include="GUI\TinyGarrisonGUI.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -78,6 +79,7 @@
     <Compile Include="GUI\TinyGarrisonSettings.cs" />
     <Compile Include="Helpers.cs" />
     <Compile Include="Jobs.cs" />
+    <Compile Include="Movement.cs" />
     <Compile Include="Tasks\CommandTable.cs" />
     <Compile Include="Tasks\GarrisonCache.cs" />
     <Compile Include="Tasks\HerbGarden.cs" />

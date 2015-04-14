@@ -9,26 +9,61 @@ using Styx.WoWInternals.WoWObjects;
 
 namespace TinyGarrison
 {
+	enum JobType { Move, GarrisonCache };
+
 	class Job
 	{
-		public Job(string name, GarrisonBuildingType type, WoWPoint location, int shipmentCrateEntry, int workOrderNpcEntry, int professionNpcEntry)
+		public Job(JobType type, WoWPoint location)
 		{
-			Name = name;
 			Type = type;
 			Location = location;
-			ShipmentCrateEntry = shipmentCrateEntry;
-			WorkOrderNpcEntry = workOrderNpcEntry;
-			ProfessionNpcEntry = professionNpcEntry;
 		}
 
-		public string Name { get; set; }
-		public GarrisonBuildingType Type { get; set; }
+		public JobType Type { get; set; }
 		public WoWPoint Location { get; set; }
-		public int ShipmentCrateEntry { get; set; }
-		public int WorkOrderNpcEntry { get; set; }
-		public int ProfessionNpcEntry { get; set; }
 	}
 
+	class Jobs
+	{
+		public static readonly LocalPlayer Me = StyxWoW.Me;
+		private static List<Job> MyJobs = new List<Job>();
+		private static int _currentJobIndex;
+
+		public static void Initialize()
+		{
+			if (!GUI.TinyGarrisonSettings.Instance.GarrisonCache) Tasks.GarrisonCache.AddJob();
+			if (!GUI.TinyGarrisonSettings.Instance.GardenMine)
+			{
+				Tasks.Garden.AddJob();
+				Tasks.Mine.AddJob();
+			}
+
+			Helpers.Log("Initialized");
+		}
+
+		public static void NextJob()
+		{
+			_currentJobIndex++;
+		}
+
+		public static Job CurrentJob()
+		{
+			return MyJobs[_currentJobIndex++];
+		}
+
+		public static void Add(JobType type, WoWPoint location)
+		{
+			MyJobs.Add(new Job(type, location));
+		}
+
+		public static void Add(JobType type)
+		{
+			MyJobs.Add(new Job(type, new WoWPoint(0, 0, 0)));
+		}
+	}
+}
+
+/*
 	class Jobs
 	{
 		private static List<Job> MyJobs = new List<Job>();
@@ -103,3 +138,5 @@ namespace TinyGarrison
 		}
 	}
 }
+
+	*/

@@ -4,12 +4,41 @@ using Styx;
 using Styx.CommonBot.Coroutines;
 using Styx.WoWInternals;
 using Styx.WoWInternals.WoWObjects;
+using System.Collections.Generic;
 
 namespace TinyGarrison.Tasks
 {
 	class GarrisonCache
 	{
-		private static bool _alreadyMoved;
+		public static void AddJob()
+		{
+			Jobs.Add(JobType.GarrisonCache, new WoWPoint);
+		}
+
+		public static async Task<bool> Execute()
+		{
+			// Loot GarrisonCache
+			WoWGameObject garrisonCache =
+				ObjectManager.GetObjectsOfType<WoWGameObject>()
+					.Where(o => Data.GarrisonCache.Contains(o.Entry))
+					.OrderBy(o => o.Distance).FirstOrDefault();
+
+			if (garrisonCache != null && garrisonCache.IsValid)
+			{
+				Helpers.Log("Looting " + garrisonCache.Name);
+				garrisonCache.Interact();
+				await CommonCoroutines.WaitForLuaEvent("CHAT_MESSAGE_CURRENCY", 3000);
+				return true;
+			}
+
+			// Done
+			Jobs.NextJob();
+			return true;
+		}
+	}
+}
+
+/*private static bool _alreadyMoved;
 
 		public static async Task<bool> Handler()
 		{
@@ -46,6 +75,4 @@ namespace TinyGarrison.Tasks
 			// Done
 			Jobs.NextJob();
 			return true;
-		}
-	}
-}
+		}*/

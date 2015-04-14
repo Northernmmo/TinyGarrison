@@ -15,11 +15,15 @@ namespace TinyGarrison.GUI
 		public TinyGarrisonGUI()
 		{
 			InitializeComponent();
+			GarrisonCache.Checked = TinyGarrisonSettings.Instance.GarrisonCache;
+			GardenMine.Checked = TinyGarrisonSettings.Instance.GardenMine;
 		}
 
-		private void GarrisonCache_CheckedChanged(object sender, EventArgs e)
+		private void Save_Click(object sender, EventArgs e)
 		{
-			 GarrisonCache.Checked;
+			TinyGarrisonSettings.Instance.GarrisonCache = GarrisonCache.Checked;
+			TinyGarrisonSettings.Instance.GardenMine = GardenMine.Checked;
+			TinyGarrisonGUI.ActiveForm.Close();
 		}
 	}
 }
