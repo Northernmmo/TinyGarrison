@@ -49,6 +49,9 @@ namespace TinyGarrison
 				case JobType.GatherResources:
 					await Tasks.GatherResources();
 					return true;
+				case JobType.StartWorkOrders:
+					await Tasks.StartWorkOrders();
+					return true;
 				case JobType.Done:
 					Helpers.Log("Done");
 					TreeRoot.Stop("Done with Garrison Jobs");

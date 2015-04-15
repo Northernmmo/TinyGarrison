@@ -32,6 +32,14 @@ namespace TinyGarrison
 			return r == MoveResult.ReachedDestination;
 		}
 
+		public static async Task<bool> MoveTo(WoWUnit destinationUnit)
+		{
+			var location = WoWMathHelper.CalculatePointFrom(StyxWoW.Me.Location, destinationUnit.Location, destinationUnit.InteractRange - 2);
+			var r = await CommonCoroutines.MoveTo(location);
+
+			return r == MoveResult.ReachedDestination;
+		}
+
 		public static async Task<bool> LootGarrisonCache()
 		{
 			WoWGameObject garrisonCache =
@@ -102,6 +110,37 @@ namespace TinyGarrison
 					return true;
 				await CommonCoroutines.WaitForLuaEvent("LOOT_OPENED", 3000);
 				await CommonCoroutines.WaitForLuaEvent("LOOT_CLOSED", 3000);
+				return true;
+			}
+
+			// Done
+			Jobs.NextJob();
+			return true;
+		}
+
+		public static async Task<bool> StartWorkOrders()
+		{
+			WoWUnit workOrderNpc =
+				ObjectManager.GetObjectsOfType<WoWUnit>()
+					.Where(o => Jobs.CurrentJob.Entries.Contains(o.Entry))
+					.OrderBy(o => o.Distance).FirstOrDefault();
+
+			if (workOrderNpc != null && workOrderNpc.IsValid)
+			{
+				if (!workOrderNpc.WithinInteractRange)
+				{
+					await MoveTo(workOrderNpc);
+					return true;
+				}
+
+				Helpers.Log("Starting " + Jobs.CurrentJob.Type + " work orders");
+				workOrderNpc.Interact();
+				await CommonCoroutines.WaitForLuaEvent("SHIPMENT_CRAFTER_OPENED", 3000);
+				await CommonCoroutines.WaitForLuaEvent("SHIPMENT_CRAFTER_INFO", 3000);
+				Lua.DoString("GarrisonCapacitiveDisplayFrame.CreateAllWorkOrdersButton:Click()");
+				await CommonCoroutines.WaitForLuaEvent("BAG_UPDATE_DELAYED", 3000);
+				Lua.DoString("GarrisonCapacitiveDisplayFrameCloseButton:Click()");
+				await CommonCoroutines.WaitForLuaEvent("SHIPMENT_CRAFTER_CLOSED", 3000);
 				return true;
 			}
 
