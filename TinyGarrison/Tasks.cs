@@ -125,7 +125,13 @@ namespace TinyGarrison
 					.Where(o => Jobs.CurrentJob.Entries.Contains(o.Entry))
 					.OrderBy(o => o.Distance).FirstOrDefault();
 
-			if (workOrderNpc != null && workOrderNpc.IsValid)
+			Lua.DoString("C_Garrison.RequestLandingPageShipmentInfo()");
+			await CommonCoroutines.WaitForLuaEvent("GARRISON_LANDINGPAGE_SHIPMENTS", 3000);
+			var workOrdersCanStart = 
+				GarrisonInfo.GetShipmentInfoByType(Jobs.CurrentJob.Building).ShipmentCapacity -
+				GarrisonInfo.GetShipmentInfoByType(Jobs.CurrentJob.Building).LandingPageInfo.ShipmentsCreated;
+
+			if (workOrderNpc != null && workOrderNpc.IsValid && workOrdersCanStart > 0)
 			{
 				if (!workOrderNpc.WithinInteractRange)
 				{
@@ -133,7 +139,7 @@ namespace TinyGarrison
 					return true;
 				}
 
-				Helpers.Log("Starting " + Jobs.CurrentJob.Type + " work orders");
+				Helpers.Log("Starting " + Jobs.CurrentJob.Building + " work orders");
 				workOrderNpc.Interact();
 				await CommonCoroutines.WaitForLuaEvent("SHIPMENT_CRAFTER_OPENED", 3000);
 				await CommonCoroutines.WaitForLuaEvent("SHIPMENT_CRAFTER_INFO", 3000);
