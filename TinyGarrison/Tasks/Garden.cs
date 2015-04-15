@@ -15,6 +15,7 @@ namespace TinyGarrison.Tasks
 			if (!GUI.TinyGarrisonSettings.Instance.GardenMine) return;
 			Jobs.Add(JobType.Move, new WoWPoint(5414.47, 4573.50, 137.53));
 			Jobs.Add(JobType.Garden);
+			Jobs.Add(JobType.LootShipment);
 			Helpers.Log("Added Job: Garden");
 		}
 
