@@ -10,7 +10,8 @@ namespace TinyGarrison
 	{
 		Done,
 		Move,
-		GarrisonCache,
+		LootGarrisonCache,
+		GatherResources,
 		Profession,
 		LootShipment,
 		StartWorkOrders
@@ -18,17 +19,17 @@ namespace TinyGarrison
 
 	class Job
 	{
-		public Job(JobType type, WoWPoint location, HashSet<uint> shipmentCrateEntries, GarrisonBuildingType building)
+		public Job(JobType type, WoWPoint location, HashSet<uint> entries, GarrisonBuildingType building)
 		{
 			Type = type;
 			Location = location;
-			ShipmentCrateEntries = shipmentCrateEntries;
+			Entries = entries;
 			Building = building;
 		}
 
 		public JobType Type { get; set; }
 		public WoWPoint Location { get; set; }
-		public HashSet<uint> ShipmentCrateEntries { get; set; }
+		public HashSet<uint> Entries { get; set; }
 		public GarrisonBuildingType Building { get; set; }
 	}
 
@@ -54,9 +55,10 @@ namespace TinyGarrison
 			{
 				Helpers.Log("Adding Job: Garden");
 				Add(JobType.Move, new WoWPoint(5414.47, 4573.50, 137.53));
-				Add(JobType.LootGarrisonCache, Data.GardenShipment);
-				Add(JobType.Garden);
-				Add(JobType.StartWorkOrders, Data.GardenWorkOrderNPC);
+				Add(JobType.LootShipment, Data.GardenShipment, GarrisonBuildingType.HerbGarden);
+				Add(JobType.GatherResources, Data.GardenHerbs);
+				Add(JobType.Move, new WoWPoint(5414.47, 4573.50, 137.53));
+				Add(JobType.StartWorkOrders, Data.WorkOrderNPCs[GarrisonBuildingType.HerbGarden]);
 			}
 
 			// Mine
@@ -64,9 +66,10 @@ namespace TinyGarrison
 			{
 				Helpers.Log("Adding Job: Mine");
 				Add(JobType.Move, new WoWPoint(5475.488, 4452.166, 144.4591));
-				Add(JobType.LootGarrisonCache, Data.MineShipment);
-				Add(JobType.Mine);
-				Add(JobType.StartWorkOrders, Data.MineWorkOrderNPC);
+				Add(JobType.LootShipment, Data.MineShipment, GarrisonBuildingType.Mines);
+				Add(JobType.GatherResources);
+				Add(JobType.Move, new WoWPoint(5475.488, 4452.166, 144.4591));
+				Add(JobType.StartWorkOrders, Data.WorkOrderNPCs[GarrisonBuildingType.Mines]);
 			}
 
 			// PrimalTrader
@@ -84,6 +87,7 @@ namespace TinyGarrison
 		public static void NextJob()
 		{
 			_currentJobIndex++;
+			Helpers.Log("Current JobType: " + CurrentJob.Type.ToString());
 		}
 
 		public static Job CurrentJob
@@ -94,9 +98,9 @@ namespace TinyGarrison
 			}
 		}
 
-		public static void Add(JobType type, WoWPoint location, HashSet<uint> shipmentCrateEntries, GarrisonBuildingType building)
+		public static void Add(JobType type, WoWPoint location, HashSet<uint> entries, GarrisonBuildingType building)
 		{
-			MyJobs.Add(new Job(type, location, shipmentCrateEntries, building));
+			MyJobs.Add(new Job(type, location, entries, building));
 		}
 
 		public static void Add(JobType type)
@@ -104,14 +108,19 @@ namespace TinyGarrison
 			Add(type, new WoWPoint(0, 0, 0), new HashSet<uint>(), GarrisonBuildingType.Unknown);
 		}
 
-		public static void Add(JobType type, HashSet<uint> shipmentCrateEntries)
+		public static void Add(JobType type, HashSet<uint> entries)
 		{
-			Add(type, new WoWPoint(0, 0, 0), shipmentCrateEntries, GarrisonBuildingType.Unknown);
+			Add(type, new WoWPoint(0, 0, 0), entries, GarrisonBuildingType.Unknown);
 		}
 
 		public static void Add(JobType type, WoWPoint location)
 		{
 			Add(type, location, new HashSet<uint>(), GarrisonBuildingType.Unknown);
+		}
+
+		public static void Add(JobType type, HashSet<uint> entries, GarrisonBuildingType building)
+		{
+			Add(type, new WoWPoint(0, 0, 0), entries, building);
 		}
 	}
 }

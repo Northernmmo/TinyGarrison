@@ -9,25 +9,34 @@ using Styx.Pathing;
 using Styx.WoWInternals.WoWObjects;
 using Styx.WoWInternals;
 using Styx.WoWInternals.Garrison;
+using Styx.Helpers;
 
 namespace TinyGarrison
 {
 	class Tasks
 	{
-		public static async Task<bool> MoveTo(WoWPoint location)
+		public static async Task<bool> MoveTo()
 		{
-			var r = await CommonCoroutines.MoveTo(location);
+			var r = await CommonCoroutines.MoveTo(Jobs.CurrentJob.Location);
 			if (r != MoveResult.ReachedDestination) return true;
 
 			Jobs.NextJob();
 			return true;
 		}
 
-		public static async Task<bool> LootGarrisonCache(HashSet<uint> entries)
+		public static async Task<bool> MoveTo(WoWGameObject destinationObject)
+		{
+			var location = WoWMathHelper.CalculatePointFrom(StyxWoW.Me.Location, destinationObject.Location, destinationObject.InteractRange - 2);
+			var r = await CommonCoroutines.MoveTo(location);
+
+			return r == MoveResult.ReachedDestination;
+		}
+
+		public static async Task<bool> LootGarrisonCache()
 		{
 			WoWGameObject garrisonCache =
 				ObjectManager.GetObjectsOfType<WoWGameObject>()
-					.Where(o => Data.GarrisonCache.Contains(o.Entry))
+					.Where(o => Jobs.CurrentJob.Entries.Contains(o.Entry))
 					.OrderBy(o => o.Distance).FirstOrDefault();
 
 			if (garrisonCache != null && garrisonCache.IsValid)
@@ -35,26 +44,25 @@ namespace TinyGarrison
 				Helpers.Log("Looting " + garrisonCache.Name);
 				garrisonCache.Interact();
 				await CommonCoroutines.WaitForLuaEvent("CHAT_MESSAGE_CURRENCY", 3000);
-				Jobs.NextJob();
 				return true;
 			}
 
+			Jobs.NextJob();
 			return true;
 		}
 
-		public static async Task<bool> LootShipment(HashSet<uint> entries)
+		public static async Task<bool> LootShipment()
 		{
-			GarrisonInfo.
-
 			WoWGameObject shipmentCrate =
 					ObjectManager.GetObjectsOfType<WoWGameObject>()
-						.Where(o => Data.Shipment.Contains(o.Entry))
+						.Where(o => Jobs.CurrentJob.Entries.Contains(o.Entry))
 						.OrderBy(o => o.Distance).FirstOrDefault();
 
 			Lua.DoString("C_Garrison.RequestLandingPageShipmentInfo()");
 			await CommonCoroutines.WaitForLuaEvent("GARRISON_LANDINGPAGE_SHIPMENTS", 3000);
+			var shipmentsReady = GarrisonInfo.GetShipmentInfoByType(Jobs.CurrentJob.Building).LandingPageInfo.ShipmentsReady;
 
-			if (shipmentCrate != null && shipmentCrate.IsValid)
+			if (shipmentCrate != null && shipmentCrate.IsValid && shipmentsReady > 0)
 			{
 				Helpers.Log("Looting " + shipmentCrate.Name);
 				shipmentCrate.Interact();
@@ -63,7 +71,39 @@ namespace TinyGarrison
 				return true;
 			}
 
+			// Done
+			Jobs.NextJob();
 			return true;
+		}
+
+		public static async Task<bool> GatherResources()
+		{
+			WoWGameObject resourceObj =
+				ObjectManager.GetObjectsOfType<WoWGameObject>()
+					.Where(o => o.CanUse())
+					.Where(
+						o => Jobs.CurrentJob.Entries.Contains(o.Entry))
+					.OrderBy(o => o.Distance).FirstOrDefault();
+
+			if (resourceObj != null && resourceObj.IsValid)
+			{
+				Helpers.Log("Gathering " + resourceObj.Name);
+				if (!resourceObj.WithinInteractRange)
+				{
+					await MoveTo(resourceObj);
+					return true;
+				}
+
+				await CommonCoroutines.SleepForLagDuration();
+				if (StyxWoW.Me.Combat)
+					return true;
+				resourceObj.Interact();
+				if (StyxWoW.Me.Combat)
+					return true;
+				await CommonCoroutines.WaitForLuaEvent("LOOT_OPENED", 3000);
+				await CommonCoroutines.WaitForLuaEvent("LOOT_CLOSED", 3000);
+				return true;
+			}
 
 			// Done
 			Jobs.NextJob();

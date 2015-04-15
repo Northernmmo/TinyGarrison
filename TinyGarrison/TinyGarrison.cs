@@ -38,11 +38,17 @@ namespace TinyGarrison
 			switch (Jobs.CurrentJob.Type)
 		    {
 			    case JobType.Move:
-				    await Tasks.MoveTo(Jobs.CurrentJob.Location);
+				    await Tasks.MoveTo();
 				    return true;
-				case JobType.GarrisonCache:
-				    await Tasks.LootGarrisonCache(Jobs.CurrentJob.Entries);
+				case JobType.LootShipment:
+					await Tasks.LootShipment();
+					return true;
+				case JobType.LootGarrisonCache:
+				    await Tasks.LootGarrisonCache();
 				    return true;
+				case JobType.GatherResources:
+					await Tasks.GatherResources();
+					return true;
 				case JobType.Done:
 					Helpers.Log("Done");
 					TreeRoot.Stop("Done with Garrison Jobs");
