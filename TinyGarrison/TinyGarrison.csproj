@@ -79,11 +79,7 @@
     <Compile Include="GUI\TinyGarrisonSettings.cs" />
     <Compile Include="Helpers.cs" />
     <Compile Include="Jobs.cs" />
-    <Compile Include="Movement.cs" />
-    <Compile Include="Tasks\Garden.cs" />
-    <Compile Include="Tasks\GarrisonCache.cs" />
-    <Compile Include="Tasks\Mine.cs" />
-    <Compile Include="Tasks\Profession.cs" />
+    <Compile Include="Tasks.cs" />
     <Compile Include="TinyGarrison.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
