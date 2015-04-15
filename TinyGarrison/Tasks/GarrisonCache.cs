@@ -13,7 +13,7 @@ namespace TinyGarrison.Tasks
 		{
 			if (!GUI.TinyGarrisonSettings.Instance.GarrisonCache) return;
 			Jobs.Add(JobType.Move, new WoWPoint(5593.86, 4586.82, 136.61));
-			Jobs.Add(JobType.GarrisonCahce);
+			Jobs.Add(JobType.GarrisonCache);
 			Helpers.Log("Added Job: GarrisonCache");
 		}
 

@@ -11,7 +11,9 @@ namespace TinyGarrison
 		GarrisonCache,
 		Garden,
 		Mine,
-		Profession
+		Profession,
+		LootShipment,
+		StartWorkOrders
 	};
 
 	class Job
