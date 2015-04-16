@@ -31,7 +31,9 @@ namespace TinyGarrison.GUI
 			TinyGarrisonSettings.Instance.ProfessionDailies = ProfessionDailies.Checked;
 			TinyGarrisonSettings.Instance.ProfessionBuildings = ProfessionBuildings.Checked;
 			TinyGarrisonSettings.Instance.Salvage = Salvage.Checked;
-			TinyGarrisonGUI.ActiveForm.Close();
+
+			TinyGarrisonSettings.Instance.Save();
+			if (ActiveForm != null) ActiveForm.Close();
 		}
 	}
 }

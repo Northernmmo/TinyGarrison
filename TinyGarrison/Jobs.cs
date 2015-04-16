@@ -18,7 +18,8 @@ namespace TinyGarrison
 		Profession,
 		LootShipment,
 		StartWorkOrders,
-		PrimalTrader
+		PrimalTrader,
+		Salvage
 	};
 
 	class Job
@@ -174,9 +175,15 @@ namespace TinyGarrison
 			if (GUI.TinyGarrisonSettings.Instance.Salvage)
 			{
 				Helpers.Log("Adding Job: Salvage");
+				if (GarrisonInfo.OwnedBuildings.Any(o => o.Type == GarrisonBuildingType.SalvageYard))
+				{
+					Add(JobType.Move, Data.PlotLocations[GarrisonInfo.GetOwnedBuildingByType(GarrisonBuildingType.SalvageYard).PlotInstanceId]);
+					Add(JobType.Salvage);
+				}
 			}
 
 			// Done
+			Add(JobType.Move, new WoWPoint(5559.691, 4604.524, 141.7168));
 			Add(JobType.Done);
 		}
 

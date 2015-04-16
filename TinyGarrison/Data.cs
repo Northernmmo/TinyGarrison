@@ -18,6 +18,7 @@ namespace TinyGarrison
 		public static HashSet<uint> MineShipment = new HashSet<uint> { 239237 };
 		public static HashSet<uint> Shipment = new HashSet<uint> { 237104, 237120, 237069, 237138, 237131, 237186, 237146, 237066 };
 		public static HashSet<uint> HerbItems = new HashSet<uint> { 109124, 109125, 109126, 109127, 109128, 109129 };
+		public static HashSet<uint> SalvageNPC = new HashSet<uint> { 79857 };
 
 		public static HashSet<uint> LeatherworkingShipments = new HashSet<uint> { 237104 };
 		public static HashSet<uint> AlchemyShipments = new HashSet<uint> { 237120 };
@@ -26,7 +27,7 @@ namespace TinyGarrison
 		public static HashSet<uint> BlacksmithingShipments = new HashSet<uint> { 237131 };
 		public static HashSet<uint> TailoringShipments = new HashSet<uint> { 237186 };
 		public static HashSet<uint> EngineeringShipments = new HashSet<uint> { 237146 };
-		public static HashSet<uint> InscriptionShipments = new HashSet<uint> { 237066 };
+		public static HashSet<uint> InscriptionShipments = new HashSet<uint> { 237066, 237064};
 
 		public static Dictionary<GarrisonBuildingType, HashSet<uint>> WorkOrderNPCs = new Dictionary<GarrisonBuildingType, HashSet<uint>>
 		{

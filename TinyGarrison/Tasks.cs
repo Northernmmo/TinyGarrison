@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Buddy.Coroutines;
 using Styx;
 using Styx.CommonBot.Coroutines;
 using Styx.Pathing;
@@ -17,6 +18,8 @@ namespace TinyGarrison
 {
 	class Tasks
 	{
+		public static readonly LocalPlayer Me = StyxWoW.Me;
+
 		public static async Task<bool> MoveTo()
 		{
 			var r = await CommonCoroutines.MoveTo(Jobs.CurrentJob.Location);
@@ -96,9 +99,13 @@ namespace TinyGarrison
 
 			if (resourceObj != null && resourceObj.IsValid)
 			{
-				// Coffee & Pickaxe
 				if (StyxWoW.Me.SubZoneId == 7329)
 				{
+					// Movement Buffs
+					if (Me.Class == WoWClass.Shaman && !Me.HasAura("Ghost Wolf")) SpellManager.Cast("Ghost Wolf");
+					if (Me.Class == WoWClass.Druid && !Me.HasAura("Cat Form")) SpellManager.Cast("Cat Form");
+
+					// Coffee & Pickaxe
 					if (StyxWoW.Me.BagItems.Any(o => o.Entry == 118897) && (!StyxWoW.Me.HasAura(176049) || StyxWoW.Me.GetAuraById(176049).StackCount < 2)) StyxWoW.Me.BagItems.First(o => o.Entry == 118897).Interact();
 					if (StyxWoW.Me.BagItems.Any(o => o.Entry == 118903) && !StyxWoW.Me.HasAura(176061)) StyxWoW.Me.BagItems.First(o => o.Entry == 118903).Interact();
 				}
@@ -221,6 +228,26 @@ namespace TinyGarrison
 		{
 			int spellID = (int)Jobs.CurrentJob.Entries.First();
 
+			// Disenchant
+			if (spellID == 169092)
+			{
+				Helpers.Log("i'm gonna disenchant, maybe...");
+				WoWItem disenchantable = ObjectManager.GetObjectsOfType<WoWItem>().
+					FirstOrDefault(o =>
+						o.ItemInfo.Level >= 494 && o.ItemInfo.Level <= 610 &&
+						(o.ItemInfo.ItemClass == WoWItemClass.Armor || o.ItemInfo.ItemClass == WoWItemClass.Weapon));
+
+				if (disenchantable != null)
+				{
+					WoWSpell.FromId(13262).Cast();
+					disenchantable.Interact();
+					await CommonCoroutines.WaitForLuaEvent("LOOT_OPENED", 3000);
+					await CommonCoroutines.WaitForLuaEvent("LOOT_CLOSED", 3000);
+					await CommonCoroutines.SleepForLagDuration();
+					return true;
+				}
+			}
+
 			if (!WoWSpell.FromId(spellID).Cooldown)
 			{
 				// Craft any needed material
@@ -262,6 +289,62 @@ namespace TinyGarrison
 			}
 
 			// Done
+			Jobs.NextJob();
+			return true;
+		}
+
+		public static async Task<bool> Salvage()
+		{
+			// Vendor if we need bagspace
+			bool needToVendor = Me.FreeNormalBagSlots <= 2;
+
+			// Open salvage and tokens
+			List<WoWItem> items = StyxWoW.Me.BagItems.Where(o => (new HashSet<uint>()
+			{
+				114116, 114120, 114119, 120301, 122633, 122607, 114069, 114071, 114075, 114078, 114080, 
+				114110, 122621, 122622, 122623, 122624, 122625, 122626, 122627, 122628, 122629, 122630, 
+				122631, 122632, 114070, 114057, 114059, 114060, 114063, 114066, 114068, 114109, 114058, 
+				114100, 114105, 114097, 114099, 114094, 114108, 114096, 114098, 114101, 114052, 120302,
+				114082, 114112
+			}.Contains(o.Entry))).ToList();
+
+			while (items.Count > 0 && Me.FreeNormalBagSlots > 2)
+			{
+				items.First().Interact();
+				await CommonCoroutines.SleepForLagDuration();
+				await CommonCoroutines.WaitForLuaEvent("LOOT_OPENED", 3000);
+				await CommonCoroutines.WaitForLuaEvent("LOOT_CLOSED", 3000);
+				needToVendor = true;
+
+				items = StyxWoW.Me.BagItems.Where(o => (new HashSet<uint>()
+				{
+				114116, 114120, 114119, 120301, 122633, 122607, 114069, 114071, 114075, 114078, 114080, 
+				114110, 122621, 122622, 122623, 122624, 122625, 122626, 122627, 122628, 122629, 122630, 
+				122631, 122632, 114070, 114057, 114059, 114060, 114063, 114066, 114068, 114109, 114058, 
+				114100, 114105, 114097, 114099, 114094, 114108, 114096, 114098, 114101, 114052, 120302,
+				114082, 114112
+				}.Contains(o.Entry))).ToList();
+			}
+
+			// Vendor
+			if (needToVendor)
+			{
+				WoWUnit vendorNpc =
+					ObjectManager.GetObjectsOfType<WoWUnit>()
+						.Where(o => Data.SalvageNPC.Contains(o.Entry))
+						.OrderBy(o => o.Distance).FirstOrDefault();
+
+				if (vendorNpc != null && vendorNpc.IsValid)
+				{
+					vendorNpc.Interact();
+					await CommonCoroutines.WaitForLuaEvent("MERCHANT_SHOW", 3000);
+					await Coroutine.Sleep(8000);
+					Lua.DoString("MerchantFrameCloseButton:Click()");
+					await CommonCoroutines.WaitForLuaEvent("MERCHANT_CLOSED", 3000);
+					return true;
+				}
+			}
+
 			Jobs.NextJob();
 			return true;
 		}
