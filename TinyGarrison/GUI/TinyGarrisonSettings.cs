@@ -17,5 +17,17 @@ namespace TinyGarrison.GUI
 
 		[Setting, DefaultValue(true)]
 		public bool GardenMine { get; set; }
+
+		[Setting, DefaultValue(true)]
+		public bool BuySavageBlood { get; set; }
+
+		[Setting, DefaultValue(true)]
+		public bool ProfessionDailies { get; set; }
+
+		[Setting, DefaultValue(true)]
+		public bool ProfessionBuildings { get; set; }
+
+		[Setting, DefaultValue(true)]
+		public bool Salvage { get; set; }
 	}
 }

@@ -52,8 +52,13 @@ namespace TinyGarrison
 				case JobType.StartWorkOrders:
 					await Tasks.StartWorkOrders();
 					return true;
+				case JobType.PrimalTrader:
+					await Tasks.PrimalTrader();
+					return true;
+				case JobType.Profession:
+					await Tasks.Profession();
+					return true;
 				case JobType.Done:
-					Helpers.Log("Done");
 					TreeRoot.Stop("Done with Garrison Jobs");
 					return true;
 		    }
