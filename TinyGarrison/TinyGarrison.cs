@@ -61,6 +61,9 @@ namespace TinyGarrison
 				case JobType.Salvage:
 					await Tasks.Salvage();
 					return true;
+				case JobType.DarkmoonCards:
+					await Tasks.DarkmoonCards();
+					return true;
 				case JobType.Done:
 					TreeRoot.Stop("Done with Garrison Jobs");
 					return true;

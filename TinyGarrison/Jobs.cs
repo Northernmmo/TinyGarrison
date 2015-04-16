@@ -19,7 +19,8 @@ namespace TinyGarrison
 		LootShipment,
 		StartWorkOrders,
 		PrimalTrader,
-		Salvage
+		Salvage,
+		DarkmoonCards
 	};
 
 	class Job
@@ -167,6 +168,7 @@ namespace TinyGarrison
 					Add(JobType.LootShipment, Data.InscriptionShipments, GarrisonBuildingType.Inscription);
 					Add(JobType.Move, Data.PlotLocations[GarrisonInfo.GetOwnedBuildingByType(GarrisonBuildingType.Inscription).PlotInstanceId]);
 					Add(JobType.StartWorkOrders, Data.WorkOrderNPCs[GarrisonBuildingType.Inscription], GarrisonBuildingType.Inscription);
+					if (!SpellManager.HasSpell("Inscription")) Add(JobType.DarkmoonCards, Data.InscriptionNPC);
 					Add(JobType.Move, Data.PlotLocations[GarrisonInfo.GetOwnedBuildingByType(GarrisonBuildingType.Inscription).PlotInstanceId]);
 				}
 			}

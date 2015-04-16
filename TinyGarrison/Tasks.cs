@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Bots.Professionbuddy;
 using Buddy.Coroutines;
 using Styx;
 using Styx.CommonBot.Coroutines;
@@ -13,6 +14,7 @@ using Styx.WoWInternals.Garrison;
 using Styx.Helpers;
 using Styx.WoWInternals.DB;
 using Styx.CommonBot;
+using Styx.WoWInternals.DBC;
 
 namespace TinyGarrison
 {
@@ -295,7 +297,7 @@ namespace TinyGarrison
 
 		public static async Task<bool> Salvage()
 		{
-			// Vendor if we need bagspace
+			// Vendor if we need bagspacew
 			bool needToVendor = Me.FreeNormalBagSlots <= 2;
 
 			// Open salvage and tokens
@@ -305,7 +307,7 @@ namespace TinyGarrison
 				114110, 122621, 122622, 122623, 122624, 122625, 122626, 122627, 122628, 122629, 122630, 
 				122631, 122632, 114070, 114057, 114059, 114060, 114063, 114066, 114068, 114109, 114058, 
 				114100, 114105, 114097, 114099, 114094, 114108, 114096, 114098, 114101, 114052, 120302,
-				114082, 114112
+				114082, 114112, 123857, 114087
 			}.Contains(o.Entry))).ToList();
 
 			while (items.Count > 0 && Me.FreeNormalBagSlots > 2)
@@ -322,7 +324,7 @@ namespace TinyGarrison
 				114110, 122621, 122622, 122623, 122624, 122625, 122626, 122627, 122628, 122629, 122630, 
 				122631, 122632, 114070, 114057, 114059, 114060, 114063, 114066, 114068, 114109, 114058, 
 				114100, 114105, 114097, 114099, 114094, 114108, 114096, 114098, 114101, 114052, 120302,
-				114082, 114112
+				114082, 114112, 123857, 114087
 				}.Contains(o.Entry))).ToList();
 			}
 
@@ -343,6 +345,33 @@ namespace TinyGarrison
 					await CommonCoroutines.WaitForLuaEvent("MERCHANT_CLOSED", 3000);
 					return true;
 				}
+			}
+
+			Jobs.NextJob();
+			return true;
+		}
+
+		public static async Task<bool> DarkmoonCards()
+		{
+			WoWUnit professionNPC =
+					ObjectManager.GetObjectsOfType<WoWUnit>()
+						.Where(o => Jobs.CurrentJob.Entries.Contains(o.Entry))
+						.OrderBy(o => o.Distance).FirstOrDefault();
+
+			if (professionNPC != null && professionNPC.IsValid && Lua.GetReturnVal<bool>("return GetItemCount('War Paints') >= 10 and GetItemCount('Light Parchment') >= 1", 0))
+			{
+				if (!professionNPC.WithinInteractRange)
+				{
+					await MoveTo(professionNPC);
+					return true;
+				}
+
+				professionNPC.Interact();
+				await CommonCoroutines.WaitForLuaEvent("TRADE_SKILL_SHOW", 3000);
+				Lua.DoString("DoTradeSkill(5)");
+				await CommonCoroutines.WaitForLuaEvent("BAG_UPDATE_DELAYED", 3000);
+				await CommonCoroutines.SleepForLagDuration();
+				return true;
 			}
 
 			Jobs.NextJob();
