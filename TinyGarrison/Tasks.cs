@@ -233,14 +233,14 @@ namespace TinyGarrison
 			// Disenchant
 			if (spellID == 169092)
 			{
-				Helpers.Log("i'm gonna disenchant, maybe...");
 				WoWItem disenchantable = ObjectManager.GetObjectsOfType<WoWItem>().
 					FirstOrDefault(o =>
-						o.ItemInfo.Level >= 494 && o.ItemInfo.Level <= 610 &&
+						o.ItemInfo.Level >= 494 && o.ItemInfo.Level <= 610 && o.BagSlot >= 1 && o.BagSlot <= 4 &&
 						(o.ItemInfo.ItemClass == WoWItemClass.Armor || o.ItemInfo.ItemClass == WoWItemClass.Weapon));
 
 				if (disenchantable != null)
 				{
+					Helpers.Log("Disenchanting " + disenchantable.Name);
 					WoWSpell.FromId(13262).Cast();
 					disenchantable.Interact();
 					await CommonCoroutines.WaitForLuaEvent("LOOT_OPENED", 3000);
@@ -374,6 +374,7 @@ namespace TinyGarrison
 				return true;
 			}
 
+			Lua.DoString("CloseTradeSkill()");
 			Jobs.NextJob();
 			return true;
 		}
