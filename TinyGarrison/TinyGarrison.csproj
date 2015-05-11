@@ -79,6 +79,7 @@
     <Compile Include="GUI\TinyGarrisonSettings.cs" />
     <Compile Include="Helpers.cs" />
     <Compile Include="Jobs.cs" />
+    <Compile Include="Movement.cs" />
     <Compile Include="Tasks.cs" />
     <Compile Include="TinyGarrison.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

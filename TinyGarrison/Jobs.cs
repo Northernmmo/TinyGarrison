@@ -1,11 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Styx;
-using Styx.CommonBot;
 using Styx.WoWInternals;
 using Styx.WoWInternals.DB;
 using Styx.WoWInternals.Garrison;
-using Styx.WoWInternals.WoWObjects;
 
 namespace TinyGarrison
 {
@@ -13,15 +11,18 @@ namespace TinyGarrison
 	{
 		Done,
 		Move,
-		LootGarrisonCache,
-		GatherResources,
-		Profession,
-		LootShipment,
+		GarrisonCache,
+		Gather,
+		PickupShipments,
 		StartWorkOrders,
+		Crafting,
 		PrimalTrader,
-		Salvage,
-		DarkmoonCards
-	};
+		ScrapsDaily,
+		Disenchant,
+		Check,
+		Vendor,
+		Salvage
+	}
 
 	class Job
 	{
@@ -37,195 +38,185 @@ namespace TinyGarrison
 		public WoWPoint Location { get; set; }
 		public HashSet<uint> Entries { get; set; }
 		public GarrisonBuildingType Building { get; set; }
+
 	}
 
 	class Jobs
 	{
-		private static List<Job> MyJobs = new List<Job>();
+		private static readonly List<Job> MyJobs = new List<Job>();
 		private static int _currentJobIndex;
+		public static bool MineSafetyChecked;
 
-		public static void Initialize()
+		public static Job CurrentJob
 		{
-			Helpers.Log("Initializing..");
-
-			// GarrisonCache
-			if (GUI.TinyGarrisonSettings.Instance.GarrisonCache)
-			{
-				Helpers.Log("Adding Job: GarrisonCache");
-				Add(JobType.Move, new WoWPoint(5593.86, 4586.82, 136.61));
-				Add(JobType.LootGarrisonCache, Data.GarrisonCache);
-			}
-
-			// Garden
-			if (GUI.TinyGarrisonSettings.Instance.GardenMine)
-			{
-				Helpers.Log("Adding Job: Garden");
-				Add(JobType.Move, new WoWPoint(5414.47, 4573.50, 137.53));
-				Add(JobType.LootShipment, Data.GardenShipment, GarrisonBuildingType.HerbGarden);
-				Add(JobType.GatherResources, Data.GardenHerbs);
-				Add(JobType.Move, new WoWPoint(5412.99, 4566.60, 138.29));
-				Add(JobType.StartWorkOrders, Data.WorkOrderNPCs[GarrisonBuildingType.HerbGarden], GarrisonBuildingType.HerbGarden);
-			}
-
-			// Mine
-			if (GUI.TinyGarrisonSettings.Instance.GardenMine)
-			{
-				Helpers.Log("Adding Job: Mine");
-				Add(JobType.Move, new WoWPoint(5475.488, 4452.166, 144.4591));
-				Add(JobType.LootShipment, Data.MineShipment, GarrisonBuildingType.Mines);
-				Add(JobType.GatherResources, Data.MineOre);
-				Add(JobType.Move, new WoWPoint(5469.95, 4447.67, 144.70));
-				Add(JobType.StartWorkOrders, Data.WorkOrderNPCs[GarrisonBuildingType.Mines], GarrisonBuildingType.Mines);
-			}
-
-			// Professions
-			if (GUI.TinyGarrisonSettings.Instance.ProfessionDailies)
-			{
-				Helpers.Log("Adding Job: Profession");
-				Add(JobType.Move, new WoWPoint(5468.646, 4447.296, 144.7437));
-
-				if (SpellManager.HasSpell("Leatherworking")) Add(JobType.Profession, new HashSet<uint> { 171391 }, GarrisonBuildingType.Leatherworking);
-				if (SpellManager.HasSpell("Alchemy")) Add(JobType.Profession, new HashSet<uint> { 156587 }, GarrisonBuildingType.Alchemy);
-				if (SpellManager.HasSpell("Jewelcrafting")) Add(JobType.Profession, new HashSet<uint> { 170700 }, GarrisonBuildingType.Jewelcrafting);
-				if (SpellManager.HasSpell("Enchanting")) Add(JobType.Profession, new HashSet<uint> { 169092 }, GarrisonBuildingType.Enchanting);
-				if (SpellManager.HasSpell("Blacksmithing")) Add(JobType.Profession, new HashSet<uint> { 171690 }, GarrisonBuildingType.Blacksmithing);
-				if (SpellManager.HasSpell("Tailoring")) Add(JobType.Profession, new HashSet<uint> { 168835 }, GarrisonBuildingType.Tailoring);
-				if (SpellManager.HasSpell("Engineering")) Add(JobType.Profession, new HashSet<uint> { 169080 }, GarrisonBuildingType.Engineering);
-				if (SpellManager.HasSpell("Inscription")) Add(JobType.Profession, new HashSet<uint> { 169081 }, GarrisonBuildingType.Inscription);
-			}
-
-			// PrimalTrader
-			if (GUI.TinyGarrisonSettings.Instance.BuySavageBlood)
-			{
-				Helpers.Log("Adding Job: PrimalTrader");
-				Add(JobType.Move, new WoWPoint(5577.58, 4388.634, 136.4497));
-				Add(JobType.PrimalTrader);
-			}
-
-			// ProfessionBuildings
-			if (GUI.TinyGarrisonSettings.Instance.ProfessionBuildings)
-			{
-				Helpers.Log("Adding Job: ProfessionBuildings");
-				if (GarrisonInfo.OwnedBuildings.Any(o => o.Type == GarrisonBuildingType.Leatherworking))
-				{
-					Add(JobType.Move, Data.PlotLocations[GarrisonInfo.GetOwnedBuildingByType(GarrisonBuildingType.Leatherworking).PlotInstanceId]);
-					Add(JobType.LootShipment, Data.LeatherworkingShipments, GarrisonBuildingType.Leatherworking);
-					Add(JobType.Move, Data.PlotLocations[GarrisonInfo.GetOwnedBuildingByType(GarrisonBuildingType.Leatherworking).PlotInstanceId]);
-					Add(JobType.StartWorkOrders, Data.WorkOrderNPCs[GarrisonBuildingType.Leatherworking], GarrisonBuildingType.Leatherworking);
-					Add(JobType.Move, Data.PlotLocations[GarrisonInfo.GetOwnedBuildingByType(GarrisonBuildingType.Leatherworking).PlotInstanceId]);
-				}
-				if (GarrisonInfo.OwnedBuildings.Any(o => o.Type == GarrisonBuildingType.Alchemy))
-				{
-					Add(JobType.Move, Data.PlotLocations[GarrisonInfo.GetOwnedBuildingByType(GarrisonBuildingType.Alchemy).PlotInstanceId]);
-					Add(JobType.LootShipment, Data.AlchemyShipments, GarrisonBuildingType.Alchemy);
-					Add(JobType.Move, Data.PlotLocations[GarrisonInfo.GetOwnedBuildingByType(GarrisonBuildingType.Alchemy).PlotInstanceId]);
-					Add(JobType.StartWorkOrders, Data.WorkOrderNPCs[GarrisonBuildingType.Alchemy], GarrisonBuildingType.Alchemy);
-					Add(JobType.Move, Data.PlotLocations[GarrisonInfo.GetOwnedBuildingByType(GarrisonBuildingType.Alchemy).PlotInstanceId]);
-				}
-				if (GarrisonInfo.OwnedBuildings.Any(o => o.Type == GarrisonBuildingType.Jewelcrafting))
-				{
-					Add(JobType.Move, Data.PlotLocations[GarrisonInfo.GetOwnedBuildingByType(GarrisonBuildingType.Jewelcrafting).PlotInstanceId]);
-					Add(JobType.LootShipment, Data.JewelcraftingShipments, GarrisonBuildingType.Jewelcrafting);
-					Add(JobType.Move, Data.PlotLocations[GarrisonInfo.GetOwnedBuildingByType(GarrisonBuildingType.Jewelcrafting).PlotInstanceId]);
-					Add(JobType.StartWorkOrders, Data.WorkOrderNPCs[GarrisonBuildingType.Jewelcrafting], GarrisonBuildingType.Jewelcrafting);
-					Add(JobType.Move, Data.PlotLocations[GarrisonInfo.GetOwnedBuildingByType(GarrisonBuildingType.Jewelcrafting).PlotInstanceId]);
-				}
-				if (GarrisonInfo.OwnedBuildings.Any(o => o.Type == GarrisonBuildingType.Enchanting))
-				{
-					Add(JobType.Move, Data.PlotLocations[GarrisonInfo.GetOwnedBuildingByType(GarrisonBuildingType.Enchanting).PlotInstanceId]);
-					Add(JobType.LootShipment, Data.EnchantingShipments, GarrisonBuildingType.Enchanting);
-					Add(JobType.Move, Data.PlotLocations[GarrisonInfo.GetOwnedBuildingByType(GarrisonBuildingType.Enchanting).PlotInstanceId]);
-					Add(JobType.StartWorkOrders, Data.WorkOrderNPCs[GarrisonBuildingType.Enchanting], GarrisonBuildingType.Enchanting);
-					Add(JobType.Move, Data.PlotLocations[GarrisonInfo.GetOwnedBuildingByType(GarrisonBuildingType.Enchanting).PlotInstanceId]);
-				}
-				if (GarrisonInfo.OwnedBuildings.Any(o => o.Type == GarrisonBuildingType.Blacksmithing))
-				{
-					Add(JobType.Move, Data.PlotLocations[GarrisonInfo.GetOwnedBuildingByType(GarrisonBuildingType.Blacksmithing).PlotInstanceId]);
-					Add(JobType.LootShipment, Data.BlacksmithingShipments, GarrisonBuildingType.Blacksmithing);
-					Add(JobType.Move, Data.PlotLocations[GarrisonInfo.GetOwnedBuildingByType(GarrisonBuildingType.Blacksmithing).PlotInstanceId]);
-					Add(JobType.StartWorkOrders, Data.WorkOrderNPCs[GarrisonBuildingType.Blacksmithing], GarrisonBuildingType.Blacksmithing);
-					Add(JobType.Move, Data.PlotLocations[GarrisonInfo.GetOwnedBuildingByType(GarrisonBuildingType.Blacksmithing).PlotInstanceId]);
-				}
-				if (GarrisonInfo.OwnedBuildings.Any(o => o.Type == GarrisonBuildingType.Tailoring))
-				{
-					Add(JobType.Move, Data.PlotLocations[GarrisonInfo.GetOwnedBuildingByType(GarrisonBuildingType.Tailoring).PlotInstanceId]);
-					Add(JobType.LootShipment, Data.TailoringShipments, GarrisonBuildingType.Tailoring);
-					Add(JobType.Move, Data.PlotLocations[GarrisonInfo.GetOwnedBuildingByType(GarrisonBuildingType.Tailoring).PlotInstanceId]);
-					Add(JobType.StartWorkOrders, Data.WorkOrderNPCs[GarrisonBuildingType.Tailoring], GarrisonBuildingType.Tailoring);
-					Add(JobType.Move, Data.PlotLocations[GarrisonInfo.GetOwnedBuildingByType(GarrisonBuildingType.Tailoring).PlotInstanceId]);
-				}
-				if (GarrisonInfo.OwnedBuildings.Any(o => o.Type == GarrisonBuildingType.Engineering))
-				{
-					Add(JobType.Move, Data.PlotLocations[GarrisonInfo.GetOwnedBuildingByType(GarrisonBuildingType.Engineering).PlotInstanceId]);
-					Add(JobType.LootShipment, Data.EngineeringShipments, GarrisonBuildingType.Engineering);
-					Add(JobType.Move, Data.PlotLocations[GarrisonInfo.GetOwnedBuildingByType(GarrisonBuildingType.Engineering).PlotInstanceId]);
-					Add(JobType.StartWorkOrders, Data.WorkOrderNPCs[GarrisonBuildingType.Engineering], GarrisonBuildingType.Engineering);
-					Add(JobType.Move, Data.PlotLocations[GarrisonInfo.GetOwnedBuildingByType(GarrisonBuildingType.Engineering).PlotInstanceId]);
-				}
-				if (GarrisonInfo.OwnedBuildings.Any(o => o.Type == GarrisonBuildingType.Inscription))
-				{
-					Add(JobType.Move, Data.PlotLocations[GarrisonInfo.GetOwnedBuildingByType(GarrisonBuildingType.Inscription).PlotInstanceId]);
-					Add(JobType.LootShipment, Data.InscriptionShipments, GarrisonBuildingType.Inscription);
-					Add(JobType.Move, Data.PlotLocations[GarrisonInfo.GetOwnedBuildingByType(GarrisonBuildingType.Inscription).PlotInstanceId]);
-					Add(JobType.StartWorkOrders, Data.WorkOrderNPCs[GarrisonBuildingType.Inscription], GarrisonBuildingType.Inscription);
-					if (!SpellManager.HasSpell("Inscription")) Add(JobType.DarkmoonCards, Data.InscriptionNPC);
-					Add(JobType.Move, Data.PlotLocations[GarrisonInfo.GetOwnedBuildingByType(GarrisonBuildingType.Inscription).PlotInstanceId]);
-				}
-			}
-
-			// SalvageYard
-			if (GUI.TinyGarrisonSettings.Instance.Salvage)
-			{
-				Helpers.Log("Adding Job: Salvage");
-				if (GarrisonInfo.OwnedBuildings.Any(o => o.Type == GarrisonBuildingType.SalvageYard))
-				{
-					Add(JobType.Move, Data.PlotLocations[GarrisonInfo.GetOwnedBuildingByType(GarrisonBuildingType.SalvageYard).PlotInstanceId]);
-					Add(JobType.Salvage);
-				}
-			}
-
-			// Done
-			Add(JobType.Move, new WoWPoint(5559.691, 4604.524, 141.7168));
-			Add(JobType.Done);
+			get { return MyJobs[_currentJobIndex]; }
 		}
 
 		public static void NextJob()
 		{
-			_currentJobIndex++;
-			Helpers.Log("Current JobType: " + CurrentJob.Type.ToString());
+			++_currentJobIndex;
 		}
 
-		public static Job CurrentJob
+		public static void Initialize()
 		{
-			get
+			Lua.DoString("LoadAddOn('Blizzard_GarrisonUI')");
+			Lua.DoString("C_Garrison.RequestLandingPageShipmentInfo()");
+			Data.InitializeBuildingLocations();
+
+			// Garrison Cache
+			AddJob(JobType.GarrisonCache, Data.CustomLocations[CustomLocationType.GarrisonCache], 
+				Data.CustomEntries[CustomEntryType.GarrisonCache]);
+			Helpers.Log("Added: Garrison Cache");
+
+			// Garden (Always move there to check nodes)
+			AddJob(JobType.Move, Data.CustomLocations[CustomLocationType.GardenCheck]);
+			AddJob(JobType.PickupShipments, Data.ShipmentCrateLocations[GarrisonBuildingType.HerbGarden], 
+				Data.ShipmentCrates[GarrisonBuildingType.HerbGarden], GarrisonBuildingType.HerbGarden);
+			AddJob(JobType.Gather, Data.CustomEntries[CustomEntryType.HerbNodes]);
+			AddJob(JobType.StartWorkOrders, Data.WorkOrderNpcLocations[GarrisonBuildingType.HerbGarden], 
+				Data.WorkOrderNpcs[GarrisonBuildingType.HerbGarden], GarrisonBuildingType.HerbGarden);
+			Helpers.Log("Added: Herb Garden");
+
+			// Mine
+			AddJob(JobType.PickupShipments, Data.ShipmentCrateLocations[GarrisonBuildingType.Mines], 
+				Data.ShipmentCrates[GarrisonBuildingType.Mines], GarrisonBuildingType.Mines);
+			AddJob(JobType.Gather, Data.CustomEntries[CustomEntryType.OreNodes], GarrisonBuildingType.Mines);
+			AddJob(JobType.StartWorkOrders, Data.WorkOrderNpcLocations[GarrisonBuildingType.Mines], 
+				Data.WorkOrderNpcs[GarrisonBuildingType.Mines], GarrisonBuildingType.Mines);
+			Helpers.Log("Added: Mines");
+
+			// Crafting
+			foreach (var spell in Data.DailyProfessionSpells.Where(spell =>
+				StyxWoW.Me.KnowsSpell((int)spell) && !WoWSpell.FromId((int)spell).Cooldown))
 			{
-				return MyJobs[_currentJobIndex];
+				AddJob(JobType.Crafting, Data.WorkOrderNpcLocations[GarrisonBuildingType.Mines], new HashSet<uint> { spell });
+				Helpers.Log("Added: Crafting " + WoWSpell.FromId((int)spell).Name);
 			}
+
+			// Crafting Secrets
+			foreach (var spell in Data.DailyProfessionSecrets.Where(spell =>
+				StyxWoW.Me.KnowsSpell((int)spell) && !WoWSpell.FromId((int)spell).Cooldown))
+			{
+				AddJob(JobType.Crafting, Data.WorkOrderNpcLocations[GarrisonBuildingType.Mines], new HashSet<uint> { spell });
+				Helpers.Log("Added: Crafting " + WoWSpell.FromId((int)spell).Name);
+			}
+
+			// Crafting Transmute Blood
+			if (StyxWoW.Me.KnowsSpell((int)Data.TransmuteBlood.First()) && 
+				!WoWSpell.FromId((int)Data.TransmuteBlood.First()).Cooldown)
+			{
+				AddJob(JobType.Crafting, Data.WorkOrderNpcLocations[GarrisonBuildingType.Mines], 
+					new HashSet<uint> { Data.TransmuteBlood.First() });
+				Helpers.Log("Added: Crafting Transmute Savage Blood");
+			}
+
+			// Primal Trader
+			AddJob(JobType.PrimalTrader, Data.CustomLocations[CustomLocationType.PrimalTrader], 
+				Data.CustomEntries[CustomEntryType.PrimalTrader]);
+			Helpers.Log("Added: Buy Savage Blood");
+
+			// Scraps Daily (Always move there to check quest npc)
+			if (GarrisonInfo.GetBuildingByType(GarrisonBuildingType.WarMill).Rank == 3)
+			{
+				AddJob(JobType.Move, Data.ShipmentCrateLocations[GarrisonBuildingType.WarMill]);
+				AddJob(JobType.ScrapsDaily, Data.CustomEntries[CustomEntryType.ScrapsDailyNpc]);
+				Helpers.Log("Added: Scraps Daily");
+			}
+
+			// Small Profession Buildings
+			foreach (var ownedBuilding in GarrisonInfo.OwnedBuildings.Where(ownedBuilding =>
+				(ownedBuilding.PlotInstanceId == 18 || ownedBuilding.PlotInstanceId == 19 || ownedBuilding.PlotInstanceId == 20) &&
+				ownedBuilding.Type != GarrisonBuildingType.SalvageYard && ownedBuilding.Type != GarrisonBuildingType.Storehouse))
+			{
+				AddJob(JobType.PickupShipments, Data.ShipmentCrateLocations[ownedBuilding.Type],
+					Data.ShipmentCrates[ownedBuilding.Type], ownedBuilding.Type);
+				AddJob(JobType.StartWorkOrders, Data.WorkOrderNpcLocations[ownedBuilding.Type],
+					Data.WorkOrderNpcs[ownedBuilding.Type], ownedBuilding.Type);
+				Helpers.Log("Added: " + ownedBuilding.Type + " building");
+			}
+
+			// Salvage (Always move there because... reasons)
+			AddJob(JobType.Move, Data.ShipmentCrateLocations[GarrisonBuildingType.SalvageYard]);
+			AddJob(JobType.Move, Data.WorkOrderNpcLocations[GarrisonBuildingType.SalvageYard]);
+			AddJob(JobType.Salvage, Data.ShipmentCrateLocations[GarrisonBuildingType.SalvageYard],
+				Data.CustomEntries[CustomEntryType.FollowerUpgrades]);
+			AddJob(JobType.Salvage, Data.ShipmentCrateLocations[GarrisonBuildingType.SalvageYard], 
+				Data.CustomEntries[CustomEntryType.GearTokens]);
+			AddJob(JobType.Salvage, Data.ShipmentCrateLocations[GarrisonBuildingType.SalvageYard], 
+				Data.CustomEntries[CustomEntryType.Salvage]);
+			AddJob(JobType.Vendor);
+			Helpers.Log("Added: Open Salvage");
+
+			// Garrison Cache
+			AddJob(JobType.GarrisonCache, Data.CustomLocations[CustomLocationType.GarrisonCache], 
+				Data.CustomEntries[CustomEntryType.GarrisonCache]);
+			Helpers.Log("Added: Garrison Cache");
+
+			// Done
+			AddJob(JobType.Move, Data.CustomLocations[CustomLocationType.CommandTable]);
+			AddJob(JobType.Done);
+
+			Helpers.Log("(v" + TinyGarrison.Version + ") Initialized");
 		}
 
-		public static void Add(JobType type, WoWPoint location, HashSet<uint> entries, GarrisonBuildingType building)
+		#region AddJob Overrides
+		public static void AddJob(JobType type, WoWPoint destination, HashSet<uint> entries, GarrisonBuildingType buildingType)
 		{
-			MyJobs.Add(new Job(type, location, entries, building));
+			MyJobs.Add(new Job(type, destination, entries, buildingType));
 		}
 
-		public static void Add(JobType type)
+		public static void AddJob(JobType type, WoWPoint destination)
 		{
-			Add(type, new WoWPoint(0, 0, 0), new HashSet<uint>(), GarrisonBuildingType.Unknown);
+			AddJob(type, destination, new HashSet<uint>(), GarrisonBuildingType.Unknown);
 		}
 
-		public static void Add(JobType type, HashSet<uint> entries)
+		public static void AddJob(JobType type, HashSet<uint> entries)
 		{
-			Add(type, new WoWPoint(0, 0, 0), entries, GarrisonBuildingType.Unknown);
+			AddJob(type, new WoWPoint(), entries, GarrisonBuildingType.Unknown);
 		}
 
-		public static void Add(JobType type, WoWPoint location)
+		public static void AddJob(JobType type, GarrisonBuildingType buildingType)
 		{
-			Add(type, location, new HashSet<uint>(), GarrisonBuildingType.Unknown);
+			AddJob(type, new WoWPoint(), new HashSet<uint>(), buildingType);
 		}
 
-		public static void Add(JobType type, HashSet<uint> entries, GarrisonBuildingType building)
+		public static void AddJob(JobType type, HashSet<uint> entries, GarrisonBuildingType buildingType)
 		{
-			Add(type, new WoWPoint(0, 0, 0), entries, building);
+			AddJob(type, new WoWPoint(), entries, buildingType);
 		}
+
+		public static void AddJob(JobType type, WoWPoint destination, HashSet<uint> entries)
+		{
+			AddJob(type, destination, entries, GarrisonBuildingType.Unknown);
+		}
+
+		public static void AddJob(JobType type)
+		{
+			AddJob(type, new WoWPoint(), new HashSet<uint>(), GarrisonBuildingType.Unknown);
+		}
+		#endregion
+
+		#region InsertMoveJob Overrides
+
+		public static void InsertMoveJob(WoWPoint destination)
+		{
+			MyJobs.Insert(_currentJobIndex, new Job(JobType.Move, destination, new HashSet<uint>(), GarrisonBuildingType.Unknown));
+		}
+
+		public static bool AlreadyMoved
+		{
+			get { return MyJobs[_currentJobIndex - 1].Type == JobType.Move; }
+		}
+
+		public static void AddSafetyMineCheckJob()
+		{
+			MyJobs.Insert(_currentJobIndex + 1, new Job(JobType.Gather, new WoWPoint(),
+				Data.CustomEntries[CustomEntryType.OreNodes], GarrisonBuildingType.Mines));
+			MyJobs.Insert(_currentJobIndex + 1,
+				new Job(JobType.Move, Data.CustomLocations[CustomLocationType.MineSafeCheck], new HashSet<uint>(),
+					GarrisonBuildingType.Unknown));
+			MineSafetyChecked = true;
+		}
+		#endregion
 	}
 }

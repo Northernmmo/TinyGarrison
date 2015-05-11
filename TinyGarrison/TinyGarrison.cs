@@ -16,11 +16,12 @@ namespace TinyGarrison
 {
     public class TinyGarrison : BotBase
     {
+		public static readonly Version Version = new Version(5, 1, 1);
 		#region Declerations & Overrides
 		public static readonly LocalPlayer Me = StyxWoW.Me;
-		private Composite _root;
+	    private Composite _root;
 		public override string Name { get { return "TinyGarrison"; } }
-		public override PulseFlags PulseFlags { get { return PulseFlags.All; } }
+	    public override PulseFlags PulseFlags { get { return PulseFlags.All; } }
 		public override Composite Root { get { return _root ?? (_root = new ActionRunCoroutine(ret => RootLogic())); } }
 		public override void OnSelected() { Jobs.Initialize(); }
 		public override Form ConfigurationForm { get { return new TinyGarrisonGUI(); } }
@@ -35,41 +36,45 @@ namespace TinyGarrison
 		    if (await Loot()) return true;
 		    #endregion
 
-			switch (Jobs.CurrentJob.Type)
+		    switch (Jobs.CurrentJob.Type)
 		    {
-			    case JobType.Move:
-				    await Tasks.MoveTo();
+				case JobType.Move:
+				    await Movement.Move();
 				    return true;
-				case JobType.LootShipment:
-					await Tasks.LootShipment();
+				case JobType.GarrisonCache:
+				    await Tasks.GarrisonCache();
 					return true;
-				case JobType.LootGarrisonCache:
-				    await Tasks.LootGarrisonCache();
-				    return true;
-				case JobType.GatherResources:
-					await Tasks.GatherResources();
+				case JobType.PickupShipments:
+					await Tasks.PickupShipments();
+					return true;
+				case JobType.Gather:
+					await Tasks.Gather();
 					return true;
 				case JobType.StartWorkOrders:
 					await Tasks.StartWorkOrders();
 					return true;
+				case JobType.Crafting:
+				    await Tasks.Crafting();
+				    return true;
+				case JobType.Vendor:
+					await Tasks.Vendor();
+					return true;
 				case JobType.PrimalTrader:
 					await Tasks.PrimalTrader();
 					return true;
-				case JobType.Profession:
-					await Tasks.Profession();
+				case JobType.ScrapsDaily:
+					await Tasks.ScrapsDaily();
 					return true;
 				case JobType.Salvage:
-					await Tasks.Salvage();
-					return true;
-				case JobType.DarkmoonCards:
-					await Tasks.DarkmoonCards();
-					return true;
+				    await Tasks.Salvage();
+				    return true;
 				case JobType.Done:
-					TreeRoot.Stop("Done with Garrison Jobs");
-					return true;
+					TreeRoot.Stop("Done with Garrison");
+				    return true;
 		    }
-
-		    return true;
+			
+			Helpers.Log("Missed JOB!: " + Jobs.CurrentJob.Type);
+			return true;
 	    }
 
 	    #region DefaultBehaviorDeclerations
