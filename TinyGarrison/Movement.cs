@@ -27,6 +27,8 @@ namespace TinyGarrison
 				Helpers.Log("Moving to check Scraps Daily");
 			else if (Jobs.CurrentJob.Location == Data.CustomLocations[CustomLocationType.CommandTable])
 				Helpers.Log("Done, moving to command table");
+			else if (Jobs.CurrentJob.Location == Data.CustomLocations[CustomLocationType.MineSafeCheck])
+				Helpers.Log("Moving to double check mine is done");
 
 			var r = await CommonCoroutines.MoveTo(Jobs.CurrentJob.Location);
 

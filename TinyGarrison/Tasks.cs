@@ -121,7 +121,8 @@ namespace TinyGarrison
 			await CommonCoroutines.WaitForLuaEvent("LOOT_OPENED", 1000);
 			await CommonCoroutines.WaitForLuaEvent("LOOT_CLOSED", 1000);
 			
-			if (!Jobs.MineSafetyChecked && Jobs.CurrentJob.Building == GarrisonBuildingType.Mines)
+			if (!Jobs.MineSafetyChecked && Jobs.CurrentJob.Building == GarrisonBuildingType.Mines &&
+				Data.CustomLocations[CustomLocationType.MineSafeCheck].Distance(StyxWoW.Me.Location) > 150)
 				Jobs.AddSafetyMineCheckJob();
 
 			return true;
@@ -143,8 +144,8 @@ namespace TinyGarrison
 				return true;
 			}
 
-			if (Jobs.CurrentJob.Building == GarrisonBuildingType.Jewelcrafting && 
-				GUI.TinyGarrisonSettings.Instance.SkipJewelcraftingWOs)
+			if (Jobs.CurrentJob.Building == GarrisonBuildingType.Jewelcrafting &&
+				GUI.TinyGarrisonSettings.Instance.SkipJewelcraftingWOs && !StyxWoW.Me.KnowsSpell(170700))
 			{
 				Jobs.NextJob();
 				return true;
@@ -317,7 +318,6 @@ namespace TinyGarrison
 			}
 			if (Jobs.CurrentJob.Entries.First() == 169092 && Lua.GetReturnVal<bool>("return GetItemCount('Luminous Shard') < 1 and GetItemCount('Draenic Dust') >= 20", 0))
 			{
-				await CommonCoroutines.SleepForLagDuration();
 				WoWSpell.FromId(169091).Cast();
 				await CommonCoroutines.WaitForLuaEvent("LOOT_OPENED", 3000);
 				await CommonCoroutines.WaitForLuaEvent("LOOT_CLOSED", 3000);
@@ -440,7 +440,7 @@ namespace TinyGarrison
 			else Lua.DoString("QuestInfoRewardsFrameQuestInfoItem1:Click()");
 			Lua.DoString("QuestFrameCompleteQuestButton:Click()");
 			await CommonCoroutines.WaitForLuaEvent("QUEST_FINISHED", 2000);
-
+			await Coroutine.Sleep(1000);
 			return true;
 		}
 
@@ -450,6 +450,62 @@ namespace TinyGarrison
 			await Helpers.Vendor();
 
 			Jobs.NextJob();
+			return true;
+		}
+
+		//== JewelcraftingDailyQuest ==//
+		public static async Task<bool> JewelcraftingDailyQuest()
+		{
+			// Get
+			var questGiverName = GarrisonInfo.Followers.First(o =>
+				o.InsideBuildingId == GarrisonInfo.GetBuildingByType(GarrisonBuildingType.Jewelcrafting).BuildingId).Name;
+			var questGiver = ObjectManager.GetObjectsOfType<WoWUnit>().FirstOrDefault(o =>
+				o.Name == questGiverName);
+
+			// Check
+			if (questGiver == null || !questGiver.HasQuestCursor)
+			{
+				Jobs.NextJob();
+				return true;
+			}
+
+			// Log
+			Helpers.Log("Doing jewelcrafting daily quest");
+
+			// Move
+			if (!questGiver.WithinInteractRange)
+			{
+				await Movement.MoveTo(questGiver);
+				return true;
+			}
+
+			// Check Quest Window
+			if (!Lua.GetReturnVal<bool>("return QuestFrame:IsShown()", 0))
+			{
+				questGiver.Interact();
+				return true;
+			}
+
+			// Accept Daily
+			Lua.DoString("QuestFrameAcceptButton:Click()");
+			await CommonCoroutines.WaitForLuaEvent("QUEST_LOG_UPDATE", 2000);
+
+			// Craft Daily
+
+			// Turn in Daily
+			questGiver.Interact();
+			await CommonCoroutines.WaitForLuaEvent("QUEST_PROGRESS", 2000);
+
+			/*
+			Lua.DoString("GossipTitleButton1:Click()");
+			await CommonCoroutines.WaitForLuaEvent("QUEST_PROGRESS", 2000);
+			Lua.DoString("QuestFrameCompleteButton:Click()");
+			await CommonCoroutines.WaitForLuaEvent("QUEST_COMPLETE", 2000);
+			if (armorTotal > weaponTotal) Lua.DoString("QuestInfoRewardsFrameQuestInfoItem2:Click()");
+			else Lua.DoString("QuestInfoRewardsFrameQuestInfoItem1:Click()");
+			Lua.DoString("QuestFrameCompleteQuestButton:Click()");
+			await CommonCoroutines.WaitForLuaEvent("QUEST_FINISHED", 2000);
+			*/
 			return true;
 		}
 	}

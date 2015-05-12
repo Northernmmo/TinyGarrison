@@ -16,7 +16,7 @@ namespace TinyGarrison
 {
     public class TinyGarrison : BotBase
     {
-		public static readonly Version Version = new Version(5, 1, 1);
+		public static readonly Version Version = new Version(5, 1, 2);
 		#region Declerations & Overrides
 		public static readonly LocalPlayer Me = StyxWoW.Me;
 	    private Composite _root;
@@ -67,6 +67,9 @@ namespace TinyGarrison
 					return true;
 				case JobType.Salvage:
 				    await Tasks.Salvage();
+				    return true;
+				case JobType.JewelcraftingDailyQuest:
+				    await Tasks.JewelcraftingDailyQuest();
 				    return true;
 				case JobType.Done:
 					TreeRoot.Stop("Done with Garrison");

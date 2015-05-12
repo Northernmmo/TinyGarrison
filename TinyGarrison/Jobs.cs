@@ -21,7 +21,8 @@ namespace TinyGarrison
 		Disenchant,
 		Check,
 		Vendor,
-		Salvage
+		Salvage,
+		JewelcraftingDailyQuest
 	}
 
 	class Job
@@ -133,6 +134,19 @@ namespace TinyGarrison
 				AddJob(JobType.StartWorkOrders, Data.WorkOrderNpcLocations[ownedBuilding.Type],
 					Data.WorkOrderNpcs[ownedBuilding.Type], ownedBuilding.Type);
 				Helpers.Log("Added: " + ownedBuilding.Type + " building");
+
+				/*if (ownedBuilding.Type == GarrisonBuildingType.Jewelcrafting &&
+				    GarrisonInfo.GetBuildingByType(GarrisonBuildingType.Jewelcrafting).Rank >= 2)
+				{
+					var jewelcrafingQuestGiver = GarrisonInfo.Followers.FirstOrDefault(o =>
+						o.InsideBuildingId == GarrisonInfo.GetBuildingByType(GarrisonBuildingType.Jewelcrafting).BuildingId);
+					if (jewelcrafingQuestGiver != null)
+					{
+						AddJob(JobType.Move, Data.ShipmentCrateLocations[GarrisonBuildingType.Jewelcrafting]);
+						//AddJob(JobType.JewelcraftingDailyQuest);
+						Helpers.Log("Added: Jewelcrafting daily quest");
+					}
+				}*/
 			}
 
 			// Salvage (Always move there because... reasons)
