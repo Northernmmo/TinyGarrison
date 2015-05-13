@@ -3,10 +3,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Bots.Grind;
+using Bots.Quest;
 using CommonBehaviors.Actions;
 using Styx;
 using Styx.CommonBot;
 using Styx.CommonBot.Coroutines;
+using Styx.CommonBot.Profiles.Quest.Order;
 using Styx.TreeSharp;
 using Styx.WoWInternals;
 using Styx.WoWInternals.WoWObjects;
@@ -16,7 +18,7 @@ namespace TinyGarrison
 {
     public class TinyGarrison : BotBase
     {
-		public static readonly Version Version = new Version(5, 1, 2);
+		public static readonly Version Version = new Version(5, 1, 3);
 		#region Declerations & Overrides
 		public static readonly LocalPlayer Me = StyxWoW.Me;
 	    private Composite _root;
