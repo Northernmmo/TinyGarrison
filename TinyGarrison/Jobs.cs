@@ -69,6 +69,14 @@ namespace TinyGarrison
 				Data.CustomEntries[CustomEntryType.GarrisonCache]);
 			Helpers.Log("Added: Garrison Cache");
 
+			// Missions
+			AddJob(JobType.Move, Data.CustomLocations[CustomLocationType.CommandTable],
+				Data.CustomEntries[CustomEntryType.CommandTable]);
+			// TODO: Complete Missions
+			// TODO: Upgrade Followers
+			// TODO: Start Missions
+			Helpers.Log("Added: Missions");
+
 			// Garden (Always move there to check nodes)
 			AddJob(JobType.Move, Data.CustomLocations[CustomLocationType.GardenCheck]);
 			AddJob(JobType.PickupShipments, Data.ShipmentCrateLocations[GarrisonBuildingType.HerbGarden], 
@@ -160,6 +168,8 @@ namespace TinyGarrison
 				Data.CustomEntries[CustomEntryType.Salvage]);
 			AddJob(JobType.Vendor);
 			Helpers.Log("Added: Open Salvage");
+
+			// TODO: Trading Post
 
 			// Garrison Cache
 			AddJob(JobType.GarrisonCache, Data.CustomLocations[CustomLocationType.GarrisonCache], 

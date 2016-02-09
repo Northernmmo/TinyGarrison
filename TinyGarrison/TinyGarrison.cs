@@ -18,7 +18,7 @@ namespace TinyGarrison
 {
     public class TinyGarrison : BotBase
     {
-		public static readonly Version Version = new Version(5, 1, 3);
+		public static readonly Version Version = new Version(5, 1, 4);
 		#region Declerations & Overrides
 		public static readonly LocalPlayer Me = StyxWoW.Me;
 	    private Composite _root;

@@ -25,7 +25,8 @@ namespace TinyGarrison
 		Salvage,
 		FollowerUpgrades,
 		GearTokens,
-		ScrapsDailyNpc
+		ScrapsDailyNpc,
+		CommandTable
 	}
 
 	class Data
@@ -95,7 +96,8 @@ namespace TinyGarrison
 				127818,127810,127809,127806,127805,127797,127796,127793,127792,127784,127783,127780,127779,127823,
 				114070,114071,114075,114078,114080,114110,114069,114066,114057,114109,114068,114058,114063,114059,
 				114100,114105,114097,114099,114094,114108,114096,114098,114101,114052,114053}},
-				{CustomEntryType.ScrapsDailyNpc, new HashSet<uint>{79815}}
+				{CustomEntryType.ScrapsDailyNpc, new HashSet<uint>{79815}},
+				{CustomEntryType.CommandTable, new HashSet<uint>{00000000}}
 			};
 
 		public static Dictionary<GarrisonBuildingType, HashSet<uint>> ShipmentCrates =
